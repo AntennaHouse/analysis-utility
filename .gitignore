@@ -1,0 +1,10 @@
+*.fo
+*.AT.xml
+*.log.xml
+*.log
+*.log.txt
+*.pdf
+# Emacs backup files
+*~
+\#*
+\.#*
