@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<properties>
+<entry key="45953">Lines ending in hyphens</entry>
+<entry key="45954">Blank pages at document end</entry>
+<entry key="45955">Word repeated at start of consecutive lines</entry>
+<entry key="45956">Word repeated at end of consecutive lines</entry>
+<entry key="45957">Page-level widows</entry>
+<entry key="45958">Paragraph-level widows</entry>
+<entry key="45959">Unbalanced spread</entry>
+<entry key="page-n-m">Page %1 (%2)</entry>
+<entry key="report-45955-left">-1.25em</entry>
+<entry key="report-45956-left">0.25em</entry>
+<entry key="report-45957-left">-1.25em</entry>
+<entry key="report-45958-left">-1.25em</entry>
+<entry key="report-45959-left">0.25em</entry>
+</properties>

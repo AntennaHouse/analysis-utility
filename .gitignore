@@ -4,7 +4,11 @@
 *.log
 *.log.txt
 *.pdf
+# Regenerated on each Ant run
+build-paths.xml
 # Emacs backup files
 *~
 \#*
 \.#*
+# Subversion directory
+.svn

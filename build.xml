@@ -1,0 +1,535 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="analyzer" basedir="." default="analyzer"
+	 xmlns:if="ant:if"
+	 xmlns:unless="ant:unless">
+<description>Generate PDF annotated with analysis results.</description>
+
+<!--
+   Copyright 2020 Antenna House, Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
+
+<!-- ============================================================= -->
+<!-- PROPERTIES                                                    -->
+<!-- ============================================================= -->
+
+<!-- Current file folder as file path. -->
+<property name="pwd" value="${user.dir}"/>
+
+<!-- XML file of really local overrides of properties determining or
+     describing local configuration. -->
+<property
+    name="properties.local.xml"
+    location="${pwd}/properties.local.xml"/>
+<property
+    file="${properties.local.xml}"/>
+
+<dirname property="system.basedir" file="${ant.file.analyzer}"/>
+
+<pathconvert property="system.basedir.converted" dirsep="/">
+  <path location="${system.basedir}" />
+  <!-- Ant under cygwin uses a lowercase drive letter, which some
+       Java programs don't recognise as a drive letter, so
+       translate. -->
+  <map from="c:" to="C:"/>
+  <map from="d:" to="D:"/>
+  <map from="e:" to="E:"/>
+</pathconvert>
+
+<pathconvert property="basedir.converted" dirsep="/">
+  <path location="${basedir}" />
+  <!-- Ant under cygwin uses a lowercase drive letter, which some
+       Java programs don't recognise as a drive letter, so
+       translate. -->
+  <map from="c:" to="C:"/>
+  <map from="d:" to="D:"/>
+  <map from="e:" to="E:"/>
+</pathconvert>
+
+<!-- Local file of properties determining or describing local
+     configuration. -->
+<property name="build.local.properties"
+	  location="${basedir.converted}/build.local.properties"/>
+<property file="${build.local.properties}"/>
+
+<!-- XML file of properties determining or describing local
+     configuration. -->
+<property name="build.properties.xml"
+	  location="${basedir.converted}/properties.xml"/>
+<property file="${build.properties.xml}"/>
+
+<!-- File of properties determining or describing local
+     configuration. -->
+<property name="build.properties"
+	  location="${basedir.converted}/build.properties"/>
+<property file="${build.properties}"/>
+
+<!-- Local file of properties determining or describing system
+     configuration. -->
+<property name="system.local.properties"
+	  location="${system.basedir}/system.local.properties"/>
+<property file="${system.local.properties}"/>
+<!-- File of properties determining or describing system
+     configuration. -->
+<property name="system.properties"
+	  location="${system.basedir}/system.properties"/>
+<property file="${system.properties}"/>
+
+<tstamp>
+  <format property="timestamp" pattern="yyyyMMdd"/>
+</tstamp>
+
+<!-- Language for PDF annotations, etc. -->
+<property name="lang" value="en" />
+<property name="debug" value="false" />
+<property name="force" value="false" />
+<!-- Whether to generate linearized PDF. -->
+<property name="linearized" value="false" />
+<property name="tagged" value="false" />
+<property name="verbose" value="false" />
+<property name="xmlerr" value="auto" />
+<property name="analyze" value="false" />
+<property name="logfile" value="#nolog#" />
+
+<property name="reporter.xsl" value="ahfcmd-reporter.xsl" />
+
+<property name="source.dir"
+	  value="${basedir.converted}" />
+
+<property name="xsl.dir.basename" value="xsl" />
+<property name="xsl.dir"
+	  value="${system.basedir.converted}/${xsl.dir.basename}" />
+<property name="locales.dir.basename" value="locales" />
+<property name="locales.dir"
+	  value="${xsl.dir}/${locales.dir.basename}" />
+
+<condition property="is.windows">
+  <os family="windows" />
+</condition>
+
+<!-- XSL processor location depends on OS. -->
+<condition property="ahformatter" value="${ahformatter.windows}">
+  <os family="windows" />
+</condition>
+<condition property="ahformatter" value="${ahformatter.mac}">
+  <os family="mac" />
+</condition>
+<property name="ahformatter" value="${ahformatter.unix}" />
+
+<!-- PDF version to generate. -->
+<property name="pdf.version" value="PDF1.5" />
+
+<!-- Regenerate 'build-paths.xsl' before including it. -->
+<xslt in="${xsl.dir}/ant-paths.xsl"
+      out="build-paths.xml"
+      style="${xsl.dir}/ant-paths.xsl"
+      basedir="${basedir.converted}"
+      classpath="${saxon.jar}"
+      failonerror="false"
+      force="true">
+  <factory name="net.sf.saxon.TransformerFactoryImpl">
+    <attribute
+	name="http://saxon.sf.net/feature/initialTemplate"
+	value="{http://www.antennahouse.com/names/XSLT/Functions/Document}ant-paths" />
+    <attribute
+        name="http://saxon.sf.net/feature/allow-external-functions"
+        value="true" />
+    <attribute
+        name="http://saxon.sf.net/feature/validation"
+        value="false" />
+  </factory>
+  <param name="timestamp" expression="${DSTAMP}-${TSTAMP}" />
+  <param name="xsl.dir" expression="${xsl.dir}" />
+  <param name="verbose" expression="${verbose}" />
+</xslt>
+<include optional="true" file="${basedir.converted}/build-paths.xml" />
+
+<!-- ============================================================= -->
+<!-- MACRO DEFINITIONS                                             -->
+<!-- ============================================================= -->
+
+<macrodef name="ahformatter.single"
+	  description="Format single source file to target type.">
+  <attribute name="single" default="${single}" />
+  <attribute name="src.suffix" default=".fo" />
+  <attribute name="src.dir" default="${fo.dir}" />
+  <attribute name="target.suffix" default=".pdf" />
+  <attribute name="target.dir" default="${pdf.dir}" />
+  <attribute name="target.type" default="PDF"
+	     description="AH Formatter 'printer name' without '@'" />
+  <attribute name="ahformatter" default="${ahformatter}"
+	     description="AH Formatter executable" />
+  <attribute name="base.dir" default="${fo.dir}" />
+  <attribute name="verbose" default="${verbose}" />
+  <attribute name="linearized" default="${linearized}"
+	     description="Whether to generate linearized PDF" />
+  <attribute name="force" default="${force}" />
+  <attribute name="xmlerr" default="${xmlerr}" />
+  <attribute name="analyze" default="${analyze}" />
+  <attribute name="logfile" default="${logfile}" />
+  <sequential>
+    <local name="use.logfile" />
+    <condition property="use.logfile">
+      <not>
+	<equals arg1="@{logfile}" arg2="#nolog#" />
+      </not>
+    </condition>
+    <local name="use.xmlerr" />
+    <condition property="use.xmlerr">
+      <or>
+	<istrue value="@{xmlerr}" />
+	<and>
+	  <equals arg1="@{xmlerr}" arg2="auto" />
+	  <matches string="$use.logfile" pattern=".*\.xml$"
+		   casesensitive="false" />
+	</and>
+      </or>
+    </condition>
+    <local name="do.analyze" />
+    <condition property="do.analyze">
+      <istrue value="@{analyze}" />
+    </condition>
+    <local name="record.action" />
+    <condition property="record.action" value="start" else="stop">
+      <istrue value="${use.logfile}" />
+    </condition>
+    <local name="single.uptodate" />
+    <uptodate
+	property="single.uptodate"
+	targetfile="@{target.dir}/${single.basename}@{target.suffix}">
+      <srcfiles file="@{src.dir}/${single.basename}@{src.suffix}" />
+      <srcfiles file="@{ahformatter}" />
+    </uptodate>
+    <local name="do.it" />
+    <condition property="do.it">
+      <or>
+	<isfalse value="${single.uptodate}" />
+	<istrue value="@{force}" />
+      </or>
+    </condition>
+    <sequential if:set="do.it">
+      <echo message="src:    @{src.dir}/${single.basename}@{src.suffix}" />
+      <echo message="target: @{target.dir}/${single.basename}@{target.suffix}" />
+      <echo message="base: @{base.dir}" />
+      <echo message="logfile: @{logfile}" if:true="${use.logfile}" />
+      <echo message="analyze: @{analyze}" if:true="${do.analyze}" />
+      <echo message="AHF${ahformatter.version}_64_FONT_CONFIGFILE: ${AHF${ahformatter.version}_64_FONT_CONFIGFILE}"
+	    if:set="AHF${ahformatter.version}_64_FONT_CONFIGFILE" />
+      <mkdir dir="@{target.dir}" />
+      <!--<record name="@{logfile}" action="${record.action}"
+	      emacsmode="true" />-->
+      <exec executable="@{ahformatter}"
+	    dir="@{src.dir}"
+	    output="@{logfile}" errorproperty="ignoreerrors">
+	<env key="AHF${ahformatter.version}_64_FONT_CONFIGFILE"
+	     value="${AHF${ahformatter.version}_64_FONT_CONFIGFILE}"
+	     if:set="AHF${ahformatter.version}_64_FONT_CONFIGFILE" />
+	<arg value="-x" />
+	<arg value="4" />
+	<arg value="-d" />
+	<arg value="@{src.dir}/${single.basename}@{src.suffix}" />
+	<arg value="-o" />
+	<arg value="@{target.dir}/${single.basename}@{target.suffix}" />
+	<arg value="-p" />
+	<!-- '@@@{target.type}' = '@' + 'target.type' attribute
+	     value. -->
+	<arg value="@@@{target.type}" />
+	<arg value="-i" if:set="ahfsettings" />
+	<arg value="${ahfsettings}" if:set="ahfsettings" />
+	<arg value="-pdfver" if:set="pdfver" />
+	<arg value="${pdfver}" if:set="pdfver" />
+	<arg value="-tpdf" if:true="tagged" />
+	<arg value="-base" />
+	<arg value="@{base.dir}" />
+	<arg value="-pgbar" if:true="@{verbose}" />
+	<arg value="-lpdf" if:true="@{linearized}" />
+	<arg value="-xmlerr" if:true="${use.xmlerr}" />
+	<arg value="-analyze" if:true="@{analyze}" />
+	<arg value="-stdout" />
+      </exec>
+      <!--<record name="@{logfile}" action="stop" />-->
+    </sequential>
+  </sequential>
+</macrodef>
+
+<macrodef name="fo2at"
+	  description="Format FO files to Area Tree XML files.">
+  <sequential>
+    <ahformatter target.dir="${at.dir}" target.suffix=".AT.xml"
+		 target.type="AreaTree" />
+  </sequential>
+</macrodef>
+
+<macrodef name="fo2at.single"
+	  description="Format single FO file to Area Tree XML.">
+  <attribute name="single" default="${single}" />
+  <attribute name="src.suffix" default=".fo" />
+  <attribute name="fo.dir" default="${fo.dir}" />
+  <attribute name="target.suffix" default=".AT.xml" />
+  <attribute name="at.dir" default="${at.dir}" />
+  <attribute name="base.dir" default="@{fo.dir}" />
+  <attribute name="logfile" default="${logfile}" />
+  <attribute name="analyze" default="${analyze}" />
+  <attribute name="xmlerr" default="${xmlerr}" />
+  <sequential>
+    <ahformatter.single single="@{single}"
+			src.suffix="@{src.suffix}"
+			src.dir="@{fo.dir}"
+			target.dir="@{at.dir}"
+			target.suffix="@{target.suffix}"
+			target.type="AreaTree"
+			base.dir="@{base.dir}"
+			logfile="@{logfile}"
+			analyze="@{analyze}"
+			xmlerr="@{xmlerr}" />
+  </sequential>
+</macrodef>
+
+<macrodef name="fo2pdf.single"
+	  description="Format single FO file to PDF.">
+  <attribute name="single" default="${single}" />
+  <attribute name="src.suffix" default=".fo" />
+  <attribute name="fo.dir" default="${fo.dir}" />
+  <attribute name="target.suffix" default=".AT.xml" />
+  <attribute name="pdf.dir" default="${pdf.dir}" />
+  <sequential>
+    <ahformatter.single single="@{single}"
+			src.suffix="@{src.suffix}"
+			src.dir="@{fo.dir}"
+			target.suffix="@{target.suffix}"
+			target.dir="@{pdf.dir}" />
+  </sequential>
+</macrodef>
+
+
+<macrodef name="at2pdf.single"
+	  description="Format single Area Tree XML file to PDF.">
+  <attribute name="single" default="${single}" />
+  <attribute name="src.suffix" default=".AT.xml" />
+  <attribute name="src.dir" default="${at.dir}" />
+  <attribute name="target.suffix" default=".pdf" />
+  <attribute name="pdf.dir" default="${pdf.dir}" />
+  <sequential>
+    <ahformatter.single
+	single="@{single}"
+	src.suffix="@{src.suffix}" src.dir="@{src.dir}"
+	target.suffix="@{target.suffix}" target.dir="@{pdf.dir}" />
+  </sequential>
+</macrodef>
+
+<macrodef name="transform.single">
+  <attribute name="single" default="${single}" />
+  <attribute name="filename.parameter" default="bogus" />
+  <attribute name="src.suffix" default=".fo" />
+  <attribute name="src.dir" default="${fo.dir}" />
+  <attribute name="target.suffix" default=".fo" />
+  <attribute name="target.dir" />
+  <attribute name="style"
+	     description="XSLT stylesheet" />
+  <attribute name="xsl.dir" default="${xsl.dir}"
+	     description="Directory containing stylesheet" />
+  <attribute name="initial.template" default="#none"
+	     description="Optional initial named template" />
+  <attribute name="force" default="${force}"
+	     description="Whether to force transform to run" />
+  <attribute name="classpath" default="${saxon.jar}"
+	     description="Classpath for XSLT processor" />
+  <element name="params" optional="true" implicit="true" />
+  <sequential>
+    <local name="use.initial.template" />
+    <condition property="use.initial.template">
+      <not>
+	<equals
+	    arg1="@{initial.template}"
+	    arg2="#none" />
+      </not>
+    </condition>
+    <mkdir dir="@{target.dir}" />
+    <xslt in="@{src.dir}/${single.basename}@{src.suffix}"
+          out="@{target.dir}/${single.basename}@{target.suffix}"
+          style="@{xsl.dir}/@{style}"
+	  basedir="${basedir.converted}"
+	  filenameparameter="@{filename.parameter}"
+	  force="@{force}"
+	  classpath="@{classpath}">
+      <!--
+	  <factory name="net.sf.saxon.TransformerFactoryImpl">
+	  <attribute
+	  name="http://saxon.sf.net/feature/initialTemplate"
+	  value="@{initial.template}"
+	  if:set="use.initial.template" />
+          <attribute
+          name="http://saxon.sf.net/feature/allow-external-functions"
+          value="true" />
+          <attribute
+          name="http://saxon.sf.net/feature/validation"
+          value="false" />
+	  </factory>
+      -->
+      <params />
+    </xslt>
+  </sequential>
+</macrodef>
+
+
+<!-- ============================================================= -->
+<!-- TARGETS                                                       -->
+<!-- ============================================================= -->
+
+<target name="single.isset">
+  <fail unless="single">
+$${single} must be set.
+Set on the command line with '-Dsingle=filename'</fail>
+  <echo if:true="${verbose}">$${single}: ${single}</echo>
+  <basename property="single.html.basename" file="${single}"
+	    suffix=".html" />
+  <basename property="single.basename" file="${single.html.basename}"
+	    suffix=".fo" />
+  <echo if:true="${verbose}">$${single.basename}: ${single.basename}</echo>
+</target>
+
+<target name="ahfcmd-at.single"
+	depends="single.isset">
+  <fo2at.single
+      at.dir="${ahfcmd-at.dir}"
+      logfile="${ahfcmd-at.dir}/${single.basename}.log.xml"
+      analyze="${analyze}"
+      xmlerr="yes" />
+  <!--<fo2at.single src.suffix=".html"
+      fo.dir="${html.dir}"
+      if:set="single.ishtml" />-->
+</target>
+
+<target name="ahfcmd-at-analyze.single"
+	depends="single.isset">
+  <fo2at.single
+      fo.dir="${pwd}"
+      at.dir="${pwd}"
+      logfile="${pwd}/${single.basename}.log.xml"
+      analyze="true"
+      xmlerr="yes" />
+  <!--<fo2at.single src.suffix=".html"
+      fo.dir="${html.dir}"
+      if:set="single.ishtml" />-->
+</target>
+
+<target name="ahfcmd-reported-xslt1.single.uptodate"
+	depends="single.isset">
+  <uptodate property="ahfcmd-reported-xslt1.single.uptodate"
+	    srcfile="${}/${single.basename}.AT.xml"
+	    targetfile="${pwd}/${single.basename}.pdf" />
+</target>
+
+<target name="ahfcmd-at-annotated.single.uptodate"
+	depends="single.isset">
+  <uptodate
+      property="ahfcmd-at-annotated.single.uptodate"
+      targetfile="${pwd}/${single.basename}.annotated.AT.xml">
+    <srcfiles
+	dir="${pwd}"
+	includes="${single.basename}.AT.xml, ${single.basename}.log.xml" />
+    <srcfiles dir="${xsl.dir}" includes="*.xsl" />
+    <srcfiles dir="${xsl.dir}" includes="*.xsl" />
+  </uptodate>
+</target>
+
+<target name="ahfcmd-at-annotated.single"
+	unless="ahfcmd-at-annotated.single.uptodate"
+        depends="single.isset, ahfcmd-at-analyze.single,
+		 ahfcmd-at-annotated.single.uptodate">
+  <transform.single
+      style="ahfcmd-reporter.xsl"
+      src.suffix=".AT.xml"
+      src.dir="${pwd}"
+      target.suffix=".annotated.AT.xml"
+      target.dir="${pwd}"
+      classpath="${saxon6.jar}">
+    <param name="logfile"
+	   expression="file:///${pwd}/${single.basename}.log.xml"
+	   if:set="is.windows" />
+    <param name="logfile"
+	   expression="${pwd}/${single.basename}.log.xml"
+	   unless:set="is.windows" />
+    <param name="lang"
+	   expression="${lang}" />
+  </transform.single>
+</target>
+
+<target name="ahfcmd-report-at.single.uptodate"
+	depends="single.isset">
+  <uptodate
+      property="ahfcmd-report-at.single.uptodate"
+      targetfile="${pwd}/${single.basename}.report.fo">
+    <srcfiles
+	dir="${pwd}"
+	includes="${single.basename}.AT.xml, ${single.basename}.log.xml" />
+    <srcfiles dir="${xsl.dir}" includes="*.xsl" />
+    <srcfiles dir="${xsl.dir}" includes="*.xsl" />
+  </uptodate>
+</target>
+
+<target name="ahfcmd-pdf">
+  <fo2pdf.single fo.dir="${pwd}"
+		 pdf.dir="${pwd}" />
+</target>
+
+<target name="ahfcmd-annotated-pdf.single"
+        depends="single.isset,
+		 ahfcmd-at-annotated.single">
+  <at2pdf.single src.suffix=".annotated.AT.xml"
+		 src.dir="${pwd}"
+		 target.suffix=".annotated.pdf"
+		 pdf.dir="${pwd}" />
+</target>
+
+<target name="ahfcmd-report-at.single"
+	unless="ahfcmd-report-at.single.uptodate"
+        depends="single.isset, ahfcmd-pdf, ahfcmd-at-analyze.single,
+		 ahfcmd-report-at.single.uptodate">
+  <transform.single
+      style="ahfcmd-reporter-xslt3.xsl"
+      src.suffix=".AT.xml"
+      src.dir="${pwd}"
+      target.suffix=".report.fo"
+      target.dir="${pwd}">
+    <param name="logfile"
+	   expression="file:///${pwd}/${single.basename}.log.xml"
+	   if:set="is.windows" />
+    <param name="logfile"
+	   expression="${pwd}/${single.basename}.log.xml"
+	   unless:set="is.windows" />
+    <param name="lang"
+	   expression="${lang}" />
+    <param name="pdf-file"
+	   expression="${pwd}/${single.basename}.pdf" />
+  </transform.single>
+</target>
+
+<target name="ahfcmd-report-pdf.single"
+        depends="single.isset,
+		 ahfcmd-report-at.single">
+  <fo2pdf.single src.suffix=".report.fo"
+		 fo.dir="${pwd}"
+		 target.suffix=".report.pdf"
+		 pdf.dir="${pwd}" />
+</target>
+
+<!-- Utility targets. -->
+
+<target name="echoproperties">
+  <echoproperties />
+</target>
+
+</project>
