@@ -58,6 +58,16 @@
   <map from="e:" to="E:"/>
 </pathconvert>
 
+<pathconvert property="pwd.converted" dirsep="/">
+  <path location="${pwd}" />
+  <!-- Ant under cygwin uses a lowercase drive letter, which some
+       Java programs don't recognise as a drive letter, so
+       translate. -->
+  <map from="c:" to="C:"/>
+  <map from="d:" to="D:"/>
+  <map from="e:" to="E:"/>
+</pathconvert>
+
 <!-- Local file of properties determining or describing local
      configuration. -->
 <property name="build.local.properties"
@@ -103,7 +113,8 @@
 <property name="analyze" value="false" />
 <property name="logfile" value="#nolog#" />
 
-<property name="reporter.xsl" value="ahfcmd-reporter.xsl" />
+<property name="annotate.xsl" value="annotate.xsl" />
+<property name="report.xsl" value="compact-report.xsl" />
 
 <property name="source.dir"
 	  value="${basedir.converted}" />
@@ -114,6 +125,7 @@
 <property name="locales.dir.basename" value="locales" />
 <property name="locales.dir"
 	  value="${xsl.dir}/${locales.dir.basename}" />
+<property name="pdf.dir" value="${pwd}" />
 
 <condition property="is.windows">
   <os family="windows" />
@@ -132,8 +144,12 @@
 <property name="pdf.version" value="PDF1.5" />
 
 <!-- Regenerate 'build-paths.xsl' before including it. -->
+<tempfile property="build-paths.xml"
+	  prefix="build-paths"
+	  suffix=".xml"
+	  deleteonexit="true" />
 <xslt in="${xsl.dir}/ant-paths.xsl"
-      out="build-paths.xml"
+      out="${build-paths.xml}"
       style="${xsl.dir}/ant-paths.xsl"
       basedir="${basedir.converted}"
       classpath="${saxon.jar}"
@@ -154,7 +170,7 @@
   <param name="xsl.dir" expression="${xsl.dir}" />
   <param name="verbose" expression="${verbose}" />
 </xslt>
-<include optional="true" file="${basedir.converted}/build-paths.xml" />
+<include optional="true" file="${basedir.converted}/${build-paths.xml}" />
 
 <!-- ============================================================= -->
 <!-- MACRO DEFINITIONS                                             -->
@@ -302,7 +318,7 @@
   <attribute name="single" default="${single}" />
   <attribute name="src.suffix" default=".fo" />
   <attribute name="fo.dir" default="${fo.dir}" />
-  <attribute name="target.suffix" default=".AT.xml" />
+  <attribute name="target.suffix" default=".pdf" />
   <attribute name="pdf.dir" default="${pdf.dir}" />
   <sequential>
     <ahformatter.single single="@{single}"
@@ -428,7 +444,7 @@ Set on the command line with '-Dsingle=filename'</fail>
 <target name="ahfcmd-reported-xslt1.single.uptodate"
 	depends="single.isset">
   <uptodate property="ahfcmd-reported-xslt1.single.uptodate"
-	    srcfile="${}/${single.basename}.AT.xml"
+	    srcfile="${pwd}/${single.basename}.AT.xml"
 	    targetfile="${pwd}/${single.basename}.pdf" />
 </target>
 
@@ -450,7 +466,7 @@ Set on the command line with '-Dsingle=filename'</fail>
         depends="single.isset, ahfcmd-at-analyze.single,
 		 ahfcmd-at-annotated.single.uptodate">
   <transform.single
-      style="ahfcmd-reporter.xsl"
+      style="${annotate.xsl}"
       src.suffix=".AT.xml"
       src.dir="${pwd}"
       target.suffix=".annotated.AT.xml"
@@ -467,10 +483,10 @@ Set on the command line with '-Dsingle=filename'</fail>
   </transform.single>
 </target>
 
-<target name="ahfcmd-report-at.single.uptodate"
+<target name="ahfcmd-report-fo.single.uptodate"
 	depends="single.isset">
   <uptodate
-      property="ahfcmd-report-at.single.uptodate"
+      property="ahfcmd-report-fo.single.uptodate"
       targetfile="${pwd}/${single.basename}.report.fo">
     <srcfiles
 	dir="${pwd}"
@@ -480,7 +496,7 @@ Set on the command line with '-Dsingle=filename'</fail>
   </uptodate>
 </target>
 
-<target name="ahfcmd-pdf">
+<target name="ahfcmd-pdf.single">
   <fo2pdf.single fo.dir="${pwd}"
 		 pdf.dir="${pwd}" />
 </target>
@@ -491,19 +507,22 @@ Set on the command line with '-Dsingle=filename'</fail>
   <at2pdf.single src.suffix=".annotated.AT.xml"
 		 src.dir="${pwd}"
 		 target.suffix=".annotated.pdf"
-		 pdf.dir="${pwd}" />
+		 pdf.dir="${pdf.dir}" />
 </target>
 
-<target name="ahfcmd-report-at.single"
-	unless="ahfcmd-report-at.single.uptodate"
-        depends="single.isset, ahfcmd-pdf, ahfcmd-at-analyze.single,
-		 ahfcmd-report-at.single.uptodate">
+<target name="ahfcmd-report-fo.single"
+	unless="ahfcmd-report-fo.single.uptodate"
+        depends="single.isset, ahfcmd-pdf.single, ahfcmd-at-analyze.single,
+		 ahfcmd-report-fo.single.uptodate">
   <transform.single
-      style="ahfcmd-reporter-xslt3.xsl"
+      style="${report.xsl}"
       src.suffix=".AT.xml"
       src.dir="${pwd}"
       target.suffix=".report.fo"
-      target.dir="${pwd}">
+      target.dir="${pwd}"
+      force="yes">
+    <param name="file"
+	   expression="${pwd.converted}/${single.basename}.fo" />
     <param name="logfile"
 	   expression="file:///${pwd}/${single.basename}.log.xml"
 	   if:set="is.windows" />
@@ -519,11 +538,11 @@ Set on the command line with '-Dsingle=filename'</fail>
 
 <target name="ahfcmd-report-pdf.single"
         depends="single.isset,
-		 ahfcmd-report-at.single">
+		 ahfcmd-report-fo.single">
   <fo2pdf.single src.suffix=".report.fo"
 		 fo.dir="${pwd}"
 		 target.suffix=".report.pdf"
-		 pdf.dir="${pwd}" />
+		 pdf.dir="${pdf.dir}" />
 </target>
 
 <!-- Utility targets. -->

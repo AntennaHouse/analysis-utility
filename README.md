@@ -1,4 +1,4 @@
-# analysis-utility
+# `analysis-utility` - AH Formatter Analysis Utility
 Stylesheets and scripts for working with the results from AH Formatter automated analysis.
 
 ## Windows
@@ -8,22 +8,26 @@ usage: analyzer -d file [-format format] [-lang lang]
                 [-ahfcmd AHFCmd] [-opt "options"]
                 [-xslt xslt] [-xsltparam "xslt-params" ]
                 [-transformer transformer ]
-                [-force yes]
+                [-pdfver pdfver] [-force yes]
+
        file    : File to format and analyze
        format  : Analysis result format -- annotate or report
-                 Default is annotate
+                 Default is 'annotate'
        lang    : Language for error messages -- en or ja
+                 Default is 'en'
        AHFCmd  : Path to AHFCmd.exe
        options : Additional AHFCmd command-line parameters
        xslt    : XSLT stylesheet to use
        xslt-params : XSLT processor parameters
        transformer : XSLT 1.0 processor -- msxsl, xsltproc, or saxon6
+                     Used with 'annotate' result format only
+       pdfver  : PDF version of reports. Default is 'PDF1.7'
        -force yes  : Force all stages to run
 ````
 
 `analyzer` generates a report in one of two formats:
 
-- `-format annotate` (the default) generates a PDF version of the formmatted source document that has additional PDF annotations and PDF layers.
+- `-format annotate` (the default) generates a PDF version of the formatted source document that has additional PDF annotations and PDF layers.
 - `-format report` generates a PDF report that includes a copy of every page that contains an analysis error.
 
 ### `-format annotate`
@@ -32,11 +36,11 @@ This runs an XSLT 1.0 stylesheet and requires `msxsl.exe`, `xsltproc.exe`, or `j
 
 `msxsl.exe` can be downloaded from https://www.microsoft.com/en-us/download/details.aspx?id=21714
 
-The script uses its built-in `ahfcmd-reporter.xsl` stylesheet to annotate the Area Tree XML for the formatted document with indications of the error areas. An alternative XSLT stylesheet can be specified with the `-xslt` parameter. Additional options and parameters can be passed to the XSLT processor with the `-xsltparam` parameter. The options and parameters must be in the correct syntax for the XSLT processor that will be used, since the `-xsltparam` value is not modified before being used.
+The script uses its built-in `annotate.xsl` stylesheet to annotate the Area Tree XML for the formatted document with indications of the error areas. An alternative XSLT stylesheet can be specified with the `-xslt` parameter. Additional options and parameters can be passed to the XSLT processor with the `-xsltparam` parameter. The options and parameters must be in the correct syntax for the XSLT processor that will be used, since the `-xsltparam` value is not modified before being used.
 
 ### `-format report`
 
-This runs the built-in `ahfcmd-reporter-xslt3.xsl` XSLT 3.0 stylesheet and requires `java.exe` to be on the PATH.
+This runs the built-in `compact-report.xsl` XSLT 3.0 stylesheet and requires `java.exe` to be on the PATH.
 
 The stylesheet generates a PDF report . An alternative XSLT stylesheet can be specified with the `-xslt` parameter. Additional options and parameters can be passed to the XSLT processor with the `-xsltparam` parameter. The options and parameters must be in the correct syntax for the XSLT processor that will be used, since the `-xsltparam` value is not modified before being used.
 
@@ -56,9 +60,9 @@ usage: analyzer.sh -d file [-opt "options"] [-lang lang] [-ahfcmd AHFCmd]
 
 Requires `xsltproc` and `getopt` to be on the path.
 
-Expects AH Formatter to be installed at `/usr/AHFormatterV7_64/run.sh`.
+Expects AH Formatter to be installed at `/usr/AHFormatterV70_64/run.sh`.
 
-The script uses its built-in `ahfcmd-reporter.xsl` stylesheet to annotate the Area Tree XML for the formatted document with indications of the error areas. An alternative XSLT stylesheet can be specified with the `-xslt` parameter. Additional options and parameters can be passed to the XSLT processor with the `-xsltparam` parameter. The options and parameters must be in the correct syntax for the XSLT processor that will be used, since the `-xsltparam` value is not modified before being used.
+The script uses its built-in `annotate.xsl` stylesheet to annotate the Area Tree XML for the formatted document with indications of the error areas. An alternative XSLT stylesheet can be specified with the `-xslt` parameter. Additional options and parameters can be passed to the XSLT processor with the `-xsltparam` parameter. The options and parameters must be in the correct syntax for the XSLT processor that will be used, since the `-xsltparam` value is not modified before being used.
 
 ## Apache Ant
 

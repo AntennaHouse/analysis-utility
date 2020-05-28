@@ -102,7 +102,7 @@ else
 fi
 
 if [ "x$XSLT" == "x" ] ; then
-    REPORTER_XSLT=${XSL_DIR}/ahfcmd-reporter.xsl
+    REPORTER_XSLT=${XSL_DIR}/annotate.xsl
 else
     if [ ! -e "$XSLT" ] ; then
 	echo "XSLT file does not exist: $XSLT" >&2 ; exit 1

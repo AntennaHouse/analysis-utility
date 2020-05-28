@@ -47,7 +47,7 @@
 -->
 <!-- This language's locale file is used as the fallback when the
      locale file(s) found from the user's language settings don't have
-     a match for an axf:l10n lookup. -->
+     a match for an ahf:l10n lookup. -->
 <xsl:param name="default-lang" select="'en'" />
 
 <!-- Directory containing locale files. -->
@@ -124,13 +124,13 @@
 <!-- NAMED TEMPLATES                                               -->
 <!-- ============================================================= -->
 
-<!-- axf:l10n($key as xs:string) as xs:string -->
+<!-- ahf:l10n($key as xs:string) as xs:string -->
 <!-- Looks up $key in applicable locale files and returns value from
      first match found.  Preference, from highest to lowest, is
      $report-lang, combined $locale-language and $locale-country,
      $locale-country, and $default-lang.  Returns $key if no match
      found. -->
-<xsl:template name="axf:l10n">
+<xsl:template name="ahf:l10n">
   <xsl:param name="key" />
 
   <!-- Use value from a locale file only if the file exists and has an

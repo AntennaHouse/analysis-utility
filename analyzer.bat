@@ -1,5 +1,6 @@
 @echo off
 
+
 rem    Copyright 2020 Antenna House, Inc.
 rem 
 rem    Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,11 +23,24 @@ rem    https://www.microsoft.com/en-us/download/details.aspx?id=21714
 
 setlocal ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
 
+rem Directory locations
 set PWD=%cd%
 rem Value of '%~dp0' includes trailing '\'.
 set ANALYZER_DIR=%~dp0
 set LIB_DIR=%ANALYZER_DIR%lib
 set XSL_DIR=%ANALYZER_DIR%xsl
+
+rem Command-line parameter defaults (possibly used in 'usage' message)
+set ahfcmd=
+set d=
+set force=
+set format=annotate
+set lang=en
+set opt=
+set pdfver=PDF1.7
+set transformer=
+set xslt=
+set xsltparam=
 
 if "%1"=="" goto usage
 
@@ -35,21 +49,27 @@ goto start
 :usage
 echo.
 echo Analyze a formatted file and generate annotated PDF
+
+:usage_command_line
 echo.
 echo usage: analyzer -d file [-format format] [-lang lang]
 echo                 [-ahfcmd AHFCmd] [-opt "options"]
 echo                 [-xslt xslt] [-xsltparam "xslt-params" ]
 echo                 [-transformer transformer ]
-echo                 [-force yes]
+echo                 [-pdfver pdfver] [-force yes]
+echo.
 echo        file    : File to format and analyze
 echo        format  : Analysis result format -- annotate or report
-echo                  Default is annotate
+echo                  Default is '%format%'
 echo        lang    : Language for error messages -- en or ja
+echo                  Default is '%lang%'
 echo        AHFCmd  : Path to AHFCmd.exe
 echo        options : Additional AHFCmd command-line parameters
 echo        xslt    : XSLT stylesheet to use
 echo        xslt-params : XSLT processor parameters
 echo        transformer : XSLT 1.0 processor -- msxsl, xsltproc, or saxon6
+echo                      Used with 'annotate' result format only
+echo        pdfver  : PDF version of reports. Default is '%pdfver%'
 echo        -force yes  : Force all stages to run
 echo.
 goto done
@@ -61,17 +81,6 @@ rem Command-line argument handling based on:
 rem    https://stackoverflow.com/a/32078177
 rem    https://stackoverflow.com/a/54234876
 
-rem Command-line parameter defaults
-set lang=en
-set ahfcmd=
-set d=
-set opt=
-set xslt=
-set xsltparam=
-set transformer=
-set format=annotate
-set force=
-
 rem List of names of recognized parameters that do not require a value.
 rem There must be at least one space (' ') at the beginning and end of
 rem the list and between parameter names.
@@ -80,7 +89,7 @@ set __short_param= f
 rem List of names of recognized parameters that require a value.
 rem There must be at least one space (' ') at the beginning and end of
 rem the list and between parameter names.
-set __long_param= ahfcmd lang d opt xslt xsltparam transformer format force
+set __long_param= ahfcmd d force format lang opt pdfver transformer xslt xsltparam 
 
 rem List of all recognized parameter names.
 rem There must be at least one space (' ') at the beginning and end of
@@ -98,7 +107,8 @@ if "%~1"=="--" (
 
 rem echo              %1
 set aux=%~1
-if "%__expect_param_name%"=="yes" (
+rem if "%__expect_param_name%"=="yes" (
+if not "%__expect_param_name%"=="yes" goto parameters_value
 if "%aux:~0,1%"=="-" (
    rem Parameter name.
    set __param=%aux:~1,250%
@@ -117,22 +127,27 @@ if "%aux:~0,1%"=="-" (
    rem echo __param_removed: "%__param_removed%"
    rem set __param_removed=
    set __expect_param_name=
+   shift
+   goto initial
 ) else (
   echo.
   echo Expected a parameter starting with "-": %aux%
+  goto usage_command_line
   )
-) else (
+:parameters_value
+rem ) else (
    rem echo __param_removed: "!__param_removed!"
    rem echo __param_removed: "%__param_removed%"
    rem List of all parameter names, possibly with __param removed.
    if "x%__param_removed%"=="x%__all_param%" (
+      echo.
       echo Unrecognized parameter: -!__param!
-      goto error
+      goto usage_command_line
    )
    set "%__param%=%~1"
    set __param=
    set __expect_param_name=yes
-)
+rem )
 shift
 goto initial
 :parameters_done
@@ -158,9 +173,13 @@ goto error
 rem echo opt: %opt%
 
 
-set REPORTER_XSLT=%XSL_DIR%\ahfcmd-reporter.xsl
+set REPORTER_XSLT=%XSL_DIR%\annotate.xsl
 if "%format%"=="report" (
-   set REPORTER_XSLT=%XSL_DIR%\ahfcmd-reporter-xslt3.xsl
+rem Default 'report' format is 'compact' format.
+   set REPORTER_XSLT=%XSL_DIR%\compact-report.xsl
+) else if "%format%"=="compact" (
+rem 'compact' was used internally but never in a public release.
+   set REPORTER_XSLT=%XSL_DIR%\compact-report.xsl
 )
 
 if not "%xslt%"=="" (
@@ -198,6 +217,15 @@ if not "%ahfcmd%"=="" (
   goto error
 )
 
+rem Check format value before taking time to generate Area Tree XML.
+if not "%format%"=="annotate" (
+   if not "%format%"=="compact" (
+      if not "%format%"=="report" (
+      	 echo Unrecognized result format: %format%
+   	 goto error
+      )
+   )
+)
 
 rem All of the reasons to generate %BASENAME%.AT.XML...
 
@@ -253,6 +281,8 @@ if not exist %BASENAME%.AT.XML (
 
 if "%format%"=="annotate" (
    goto annotate
+) else if "%format%"=="compact" (
+   goto report
 ) else if "%format%"=="report" (
    goto report
 ) else (
@@ -342,7 +372,7 @@ rem ----------------------------------------------------------------------
 :report
 
 if not "%transformer%"=="" (
-   echo '-transformer' is ignored with '-format report'
+   echo '-transformer' is ignored unless '-format annotate'
 )
 
 rem Whether or not to regenerate %BASENAME%.pdf...
@@ -419,7 +449,7 @@ goto report_pdf_done
 
 :report_pdf_do
 
-call :sub_2pdf %PWD%\%BASENAME%.report.fo %PWD%\%BASENAME%.report.pdf %PWD%\%BASENAME%.report.log.txt
+call :sub_2pdf %PWD%\%BASENAME%.report.fo %PWD%\%BASENAME%.report.pdf %PWD%\%BASENAME%.report.log.txt "-pdfver %pdfver%"
 
 if %ERRORLEVEL% NEQ 0 goto error
 

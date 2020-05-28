@@ -85,7 +85,7 @@
            select="'0.5pt'" />
 
 <xsl:param name="report-layer">
-    <xsl:call-template name="axf:l10n">
+    <xsl:call-template name="ahf:l10n">
       <xsl:with-param name="key" select="'Analysis report'" />
     </xsl:call-template>
 </xsl:param>
@@ -107,18 +107,18 @@
               select="'&#xA;location:: '" />
 
 <!-- **** UPDATE TO MATCH AH FORMATTER **** -->
-<axf:error-codes>
-  <axf:code decimal="45953" />
-  <axf:code decimal="45954" />
-  <axf:code decimal="45955" />
-  <axf:code decimal="45956" />
-  <axf:code decimal="45957" />
-  <axf:code decimal="45958" />
-  <axf:code decimal="45959" />
-</axf:error-codes>
+<ahf:error-codes>
+  <ahf:code decimal="45953" />
+  <ahf:code decimal="45954" />
+  <ahf:code decimal="45955" />
+  <ahf:code decimal="45956" />
+  <ahf:code decimal="45957" />
+  <ahf:code decimal="45958" />
+  <ahf:code decimal="45959" />
+</ahf:error-codes>
 
 <xsl:variable name="error-codes"
-              select="document('')/*/axf:error-codes/axf:code" />
+              select="document('')/*/ahf:error-codes/ahf:code" />
 
 <!-- Get the errors in the Area Tree XML file. -->
 <xsl:variable name="errors-doc">
@@ -275,7 +275,7 @@
     </xsl:when>
     <xsl:otherwise>
       <xsl:message terminate="yes">
-        <xsl:call-template name="axf:l10n">
+        <xsl:call-template name="ahf:l10n">
           <xsl:with-param
               name="key"
               select="'No node-set() function available'" />
@@ -307,7 +307,7 @@
           <!-- Meunchian grouping to get one of each error code. -->
           <xsl:for-each select="error[count(. | key('error-codes', @code)[1]) = 1]">
             <xsl:text>, "</xsl:text>
-            <xsl:call-template name="axf:l10n">
+            <xsl:call-template name="ahf:l10n">
               <xsl:with-param name="key" select="@code" />
             </xsl:call-template>
             <xsl:text>"</xsl:text>
@@ -490,7 +490,7 @@
      errors. -->
 <xsl:template
     match="ahferr:error[@code =
-                        document('')/*/axf:error-codes/axf:code/@decimal]"
+                        document('')/*/ahf:error-codes/ahf:code/@decimal]"
     mode="logfile"
     xmlns="">
 
@@ -572,7 +572,7 @@
   <xsl:param name="error-message-atts" />
 
   <xsl:variable name="label">
-    <xsl:call-template name="axf:l10n">
+    <xsl:call-template name="ahf:l10n">
       <xsl:with-param name="key" select="$code" />
     </xsl:call-template>
   </xsl:variable>
@@ -594,19 +594,37 @@
       <xsl:attribute name="annotation-contents">
         <!-- Attempt to localize the message. -->
         <xsl:choose>
-          <xsl:when test="contains($message, ': ') and
-                          not(contains($message, ':: '))">
-            <xsl:call-template name="axf:l10n">
+          <xsl:when test="contains($message, ':')">
+            <xsl:call-template name="ahf:l10n">
               <xsl:with-param
                   name="key"
-                  select="concat(substring-before($message, ': '),
-                                 ': ')" />
+                  select="substring-before($message, ':')" />
             </xsl:call-template>
-            <xsl:value-of
-                  select="substring-after($message, ': ')" />
+            <xsl:call-template name="ahf:l10n">
+              <xsl:with-param name="key">
+                <xsl:choose>
+                  <xsl:when test="contains($message, ':: ')">:: </xsl:when>
+                  <xsl:otherwise>: </xsl:otherwise>
+                </xsl:choose>
+              </xsl:with-param>
+            </xsl:call-template>
+            <xsl:variable name="rest"
+                          select="substring-after($message, ': ')" />
+            <xsl:choose>
+              <xsl:when test="contains($rest, ': ')">
+                <xsl:call-template name="translate-components">
+                  <xsl:with-param
+                      name="text"
+                      select="substring-after($message, ': ')" />
+                </xsl:call-template>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:value-of select="$rest" />
+              </xsl:otherwise>
+            </xsl:choose>
           </xsl:when>
           <xsl:otherwise>
-            <xsl:call-template name="axf:l10n">
+            <xsl:call-template name="ahf:l10n">
               <xsl:with-param
                   name="key"
                   select="$message" />
@@ -620,6 +638,41 @@
         display-role="block" generated-by="block-container"
         is-first="true" is-last="true" />
   </AbsoluteViewportArea>
+</xsl:template>
+
+<xsl:template name="translate-components">
+  <xsl:param name="text" select="." />
+
+  <xsl:if test="starts-with($text, ' ')">
+    <xsl:text> </xsl:text>
+  </xsl:if>
+
+  <xsl:variable name="use-text"
+                select="normalize-space($text)" />
+
+  <xsl:call-template name="ahf:l10n">
+    <xsl:with-param name="key"
+                    select="substring-before($use-text, ': ')" />
+  </xsl:call-template>
+  <xsl:call-template name="ahf:l10n">
+    <xsl:with-param name="key"
+                    select="': '" />
+  </xsl:call-template>
+  <xsl:variable name="rest"
+                select="substring-after($use-text, ': ')" />
+  <xsl:choose>
+    <xsl:when test="not(contains($rest, ';'))">
+      <xsl:value-of select="$rest" />
+    </xsl:when>
+    <xsl:otherwise>
+      <xsl:value-of select="substring-before($rest, ';')" />
+      <xsl:text>;</xsl:text>
+      <xsl:call-template name="translate-components">
+        <xsl:with-param name="text"
+                        select="substring-after($rest, ';')" />
+      </xsl:call-template>
+    </xsl:otherwise>
+  </xsl:choose>
 </xsl:template>
 
 </xsl:stylesheet>

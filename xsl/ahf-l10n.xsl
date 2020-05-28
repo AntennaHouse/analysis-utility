@@ -3,8 +3,6 @@
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     version="2.0"
     xmlns:ahf="http://www.antennahouse.com/names/XSLT/Functions/Document"
-    xmlns:axf="http://www.antennahouse.com/names/XSL/Extensions"
-    xmlns:fo="http://www.w3.org/1999/XSL/Format"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     exclude-result-prefixes="ahf xs">
 
@@ -48,7 +46,7 @@
 
 <!-- This language's locale file is used as the fallback when the
      locale file(s) found from the user's language settings don't have
-     a match for an axf:l10n() lookup. -->
+     a match for an ahf:l10n() lookup. -->
 <xsl:param name="default-lang" select="'en'" as="xs:string" />
 
 <!-- Directory containing locale files. -->
@@ -105,12 +103,12 @@
 <!-- FUNCTIONS                                                     -->
 <!-- ============================================================= -->
 
-<!-- axf:l10n($key as xs:string) as xs:string -->
+<!-- ahf:l10n($key as xs:string) as xs:string -->
 <!-- Looks up $key in applicable locale files and returns value from
      first match found.  Preference, from highest to lowest, is
      $report-lang, combined $lang and $default-lang.  Returns $key if
      no match found. -->
-<xsl:function name="axf:l10n" as="xs:string">
+<xsl:function name="ahf:l10n" as="xs:string">
   <xsl:param name="key" as="xs:string" />
 
   <!-- Use value from a locale file only if the file exists and has an
@@ -140,20 +138,20 @@
   </xsl:choose>
 </xsl:function>
 
-<!-- axf:l10n($key as xs:string, $arguments as item()*) as item()+ -->
+<!-- ahf:l10n($key as xs:string, $arguments as item()*) as item()+ -->
 <!-- Looks up $key in applicable locale files and returns result from
      substituting items from $arguments for '%1', '%2', etc. in value
      from first match found for $key.  '%%' returns as '%'. Useful for
      interpolating strings and FOs into l10n lookup.  Preference, from
      highest to lowest, for locale files is $report-lang, combined
      $lang and $default-lang.  Returns $key if no match found. -->
-<xsl:function name="axf:l10n" as="item()+">
+<xsl:function name="ahf:l10n" as="item()+">
   <xsl:param name="key" as="xs:string" />
   <xsl:param name="arguments" as="item()*" />
 
   <!-- Lookup is the same as for no-interpolation lookup. -->
   <xsl:variable name="pattern"
-		select="axf:l10n($key)"
+		select="ahf:l10n($key)"
 		as="xs:string" />
 
   <!-- For '%%', substitute '%', and for '%1', '%2', etc., substitute

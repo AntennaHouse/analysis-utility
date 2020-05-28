@@ -2,21 +2,29 @@
 <properties>
 <entry key="45953">ハイフンで終わる行</entry>
 <entry key="45954">文書の最後に空白のページ</entry>
-<entry key="45955">同じ単語で始まる連続する行</entry>
-<entry key="45956">同じ単語で終わる連続する行</entry>
+<entry key="45955">同じテキストで始まる連続する行</entry>
+<entry key="45956">同じテキストで終わる連続する行</entry>
 <entry key="45957">ページウィドウ</entry>
 <entry key="45958">段落ウィドウ</entry>
 <entry key="45959">不均衡な見開きページ</entry>
 <entry key="AH Formatter Analysis Report">AH Formatter分析報告</entry>
 <entry key="Analysis report">分析報告</entry>
-<entry key="Consecutive hyphens: ">ハイフンで終わる行：</entry>
+<entry key="Consecutive hyphens">ハイフンで終わる行</entry>
+<entry key="Error">エラー</entry>
+<entry key="Errors">エラー</entry>
 <entry key="File">ファイル</entry>
-<entry key="Lines ending with the same word: ">同じ単語で終わる連続する行：</entry>
-<entry key="Lines starting with the same word: ">同じ単語で始まる連続する行：</entry>
-<entry key="Modification date: ">変更日：</entry>
+<entry key="length">長さ</entry>
+<entry key="Lines ending with same text">同じテキスト単語で終わる連続する行</entry>
+<entry key="Lines starting with same text">同じテキスト単語で始まる連続する行</entry>
+<entry key="minimum">最低限</entry>
+<entry key="Modification date">変更日</entry>
 <entry key="page-n-m">ページ %1 (%2)</entry>
+<entry key="page-range-separator">&#x301C;</entry>
+<entry key="Pages">ページ</entry>
 <entry key="Page widow">ページウィドウ</entry>
 <entry key="Paragraph widow">段落ウィドウ</entry>
 <entry key="Title">タイトル</entry>
-<entry key="Too many blank pages: ">文書の最後に空白のページ：</entry>
+<entry key="Too many blank pages">文書の最後に空白のページ</entry>
+<entry key=": ">：</entry>
+<entry key=":: ">&#x301C;</entry>
 </properties>
