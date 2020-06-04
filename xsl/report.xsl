@@ -321,7 +321,10 @@
 <xsl:attribute-set name="table">
   <xsl:attribute name="space-before" select="'0.5lh'" />
   <xsl:attribute name="space-after" select="'0.5lh'" />
-  <!--<xsl:attribute name="border-collapse" select="'collapse'" />-->
+  <xsl:attribute name="border-collapse"
+                 select="'collapse-with-precedence'" />
+  <xsl:attribute name="border-top" select="'1pt solid grey'" />
+  <xsl:attribute name="border-bottom" select="'1pt solid grey'" />
   <xsl:attribute name="axf:border-connection-form" select="'precedence'" />
 </xsl:attribute-set>
 
@@ -335,7 +338,8 @@
   <xsl:attribute name="padding" select="'0.4em'" />
 </xsl:attribute-set>
 
-<xsl:attribute-set name="table-cell-number" use-attribute-sets="table-cell">
+<xsl:attribute-set name="table-cell-number"
+                   use-attribute-sets="table-cell">
   <xsl:attribute name="text-align" select="'right'" />
 </xsl:attribute-set>
 
@@ -350,9 +354,14 @@
   <xsl:attribute name="axf:pdftag" select="'TH'" />
 </xsl:attribute-set>
 
+<xsl:attribute-set name="table-header">
+  <xsl:attribute name="border-bottom" select="'1pt solid grey'" />
+  <xsl:attribute name="border-after-precedence" select="'10'" />
+</xsl:attribute-set>
+
 <xsl:attribute-set name="table-row">
-  <xsl:attribute name="border-bottom" select="'1pt solid gray'" />
-  <xsl:attribute name="border-top" select="'1pt solid gray'" />
+  <xsl:attribute name="border-bottom" select="'0.5pt solid gray'" />
+  <xsl:attribute name="border-top" select="'0.5pt solid gray'" />
 </xsl:attribute-set>
 
 <xsl:attribute-set name="title" use-attribute-sets="section-title">
@@ -635,7 +644,7 @@
             <fo:table width="100%" xsl:use-attribute-sets="table">
               <fo:table-column xsl:use-attribute-sets="table-column" />
               <fo:table-column xsl:use-attribute-sets="table-column" />
-              <fo:table-header>
+              <fo:table-header xsl:use-attribute-sets="table-header">
                 <fo:table-row xsl:use-attribute-sets="table-row">
                   <fo:table-cell xsl:use-attribute-sets="table-head-cell">
                     <fo:block>
@@ -766,10 +775,7 @@
             <xsl:variable
                 name="tooltip">
               <xsl:value-of
-                  select="ahf:l10n('page-n-m',
-                          (format-number(number($page-info(2)),
-                          $page-info(3)),
-                          $abs-page-number))"/>
+                  select="ahf:page-n-m($page-info)" />
               <xsl:for-each
                   select="distinct-values(for $message in $messages
                                             return replace($message,
@@ -909,12 +915,7 @@
 
   <fo:block id="__report_page_{$abs-page-number}"
             xsl:use-attribute-sets="per-page-title">
-    <xsl:value-of
-        select="ahf:l10n('page-n-m',
-                         (format-number(number($page-info(2)),
-                                        $page-info(3)),
-                          $abs-page-number))"
-              separator="" />
+    <xsl:value-of select="ahf:page-n-m($page-info)" />
   </fo:block>
 </xsl:template>
 
@@ -970,6 +971,11 @@
                     select="ahf:callout-to($abs-page-number,
                                            $use-position,
                                            $item-number-offset)" />
+                <xsl:for-each
+                    select="$use-position + 1 to $use-position + count(current-group()) - 2">
+                  <fo:wrapper
+                      id="_to_{ahf:error-id($abs-page-number, .)}" />
+                </xsl:for-each>
                 <xsl:value-of
                     select="ahf:l10n('page-range-separator')" />
                  <xsl:sequence
@@ -1074,16 +1080,29 @@
           axf:border-radius="{$page-image-error-border-radius}"/>
       <!-- Numbered callout only if @message. -->
       <xsl:if test="normalize-space(@message) ne ''">
+        <xsl:variable
+            name="left-offset-key"
+            select="string-join(('report-', @code, '-left'), '')"
+            as="xs:string" />
+        <xsl:variable
+            name="left-offset"
+            select="if (not(ahf:l10n($left-offset-key) = $left-offset-key))
+                      then ahf:l10n($left-offset-key)
+                    else '0pt'"
+            as="xs:string" />
         <fo:block-container
             position="absolute" width="2em" height="2em"
-            left="{concat(@ax * $page-scale, 'pt')} + {ahf:l10n(string-join(('report-', @code, '-left'), ''))}"
+            left="{concat(@ax * $page-scale, 'pt')} + {$left-offset}"
             top="{concat(@ay * $page-scale, 'pt')}">
           <!--<fo:float axf:float="right page" clear="both">-->
           <fo:block
               id="{ahf:error-id($abs-page-number, $group-position)}"
               xsl:use-attribute-sets="error-label"
               color="{ahf:color($use-position)}">
-            <xsl:value-of select="$use-position" />
+            <fo:basic-link
+                internal-destination="_to_{ahf:error-id($abs-page-number, $group-position)}">
+              <xsl:value-of select="$use-position" />
+            </fo:basic-link>
           </fo:block><!--</fo:float>-->
         </fo:block-container>
       </xsl:if>
@@ -1226,10 +1245,26 @@
   <xsl:param name="offset" as="xs:integer" />
   
   <fo:basic-link
+      id="_to_{ahf:error-id($abs-page-number, $position)}"
       internal-destination="{ahf:error-id($abs-page-number, $position)}"
       color="{ahf:color($position + $offset)}">
     <xsl:value-of select="$position + $offset" />
   </fo:basic-link>
+</xsl:function>
+
+<xsl:function name="ahf:page-n-m" as="xs:string">
+  <xsl:param name="page-info" as="array(xs:string)" />
+
+  <xsl:sequence
+      select="if ($page-info(2) = $page-info and
+                  $page-info(3) = '1')
+                then ahf:l10n('page-n',
+                              (format-number(number($page-info(2)),
+                                             $page-info(3))))
+              else ahf:l10n('page-n-m',
+                            (format-number(number($page-info(2)),
+                                           $page-info(3)),
+                             $page-info(4)))" />
 </xsl:function>
 
 
