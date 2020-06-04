@@ -145,7 +145,7 @@
      interpolating strings and FOs into l10n lookup.  Preference, from
      highest to lowest, for locale files is $report-lang, combined
      $lang and $default-lang.  Returns $key if no match found. -->
-<xsl:function name="ahf:l10n" as="item()+">
+<xsl:function name="ahf:l10n" as="xs:string">
   <xsl:param name="key" as="xs:string" />
   <xsl:param name="arguments" as="item()*" />
 
@@ -158,21 +158,24 @@
        corresponding item from $arguments -->
   <xsl:choose>
     <xsl:when test="contains($pattern, '%')">
-      <xsl:analyze-string select="$pattern" regex="(%%)|%([0-9]+)">
-	<xsl:matching-substring>
-	  <xsl:choose>
-	    <xsl:when test="regex-group(1) = '%%'">
-	      <xsl:sequence select="'%'" />
-	    </xsl:when>
-	    <xsl:otherwise>
-	      <xsl:sequence select="$arguments[xs:integer(regex-group(2))]" />
-	    </xsl:otherwise>
-	  </xsl:choose>
-	</xsl:matching-substring>
-	<xsl:non-matching-substring>
-	  <xsl:value-of select="." />
-	</xsl:non-matching-substring>
-      </xsl:analyze-string>
+      <xsl:value-of>
+        <xsl:analyze-string select="$pattern" regex="(%%)|%([0-9]+)">
+	  <xsl:matching-substring>
+	    <xsl:choose>
+	      <xsl:when test="regex-group(1) = '%%'">
+	        <xsl:sequence select="'%'" />
+	      </xsl:when>
+	      <xsl:otherwise>
+	        <xsl:sequence
+                    select="$arguments[xs:integer(regex-group(2))]" />
+	      </xsl:otherwise>
+	    </xsl:choose>
+	  </xsl:matching-substring>
+	  <xsl:non-matching-substring>
+	    <xsl:value-of select="." />
+	  </xsl:non-matching-substring>
+        </xsl:analyze-string>
+      </xsl:value-of>
     </xsl:when>
     <xsl:otherwise>
       <xsl:sequence select="$pattern" />
