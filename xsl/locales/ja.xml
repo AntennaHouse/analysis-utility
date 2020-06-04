@@ -18,6 +18,7 @@
 <entry key="Lines starting with same text">同じテキスト単語で始まる連続する行</entry>
 <entry key="minimum">最低限</entry>
 <entry key="Modification date">変更日</entry>
+<entry key="page-n">ページ %1</entry>
 <entry key="page-n-m">ページ %1 (%2)</entry>
 <entry key="page-range-separator">&#x301C;</entry>
 <entry key="Pages">ページ</entry>
