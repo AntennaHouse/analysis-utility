@@ -124,7 +124,7 @@
 <xsl:param name="default-lang" select="'en'" static="yes" />
 
 <!-- Error code numbers for analysis errors. -->
-<xsl:param name="error-codes" select="45953 to 45959"
+<xsl:param name="error-codes" select="45953 to 45960"
            as="xs:integer+" static="yes" />
 
 <xsl:param name="logfile" />
