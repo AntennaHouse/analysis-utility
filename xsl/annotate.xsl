@@ -116,6 +116,7 @@
   <ahf:code decimal="45958" />
   <ahf:code decimal="45959" />
   <ahf:code decimal="45960" />
+  <ahf:code decimal="45961" />
 </ahf:error-codes>
 
 <xsl:variable name="error-codes"
