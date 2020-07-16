@@ -104,6 +104,7 @@
 
 <xsl:template name="root">
   <fo:root xsl:use-attribute-sets="document-defaults">
+    <xsl:call-template name="layer-settings" />
     <xsl:call-template name="layout-master-set" />
     <xsl:call-template name="declarations" />
     <xsl:call-template name="compact-report-pages" />
@@ -220,7 +221,7 @@
               name="page-errors"
               select="$errors-doc/errors/error[@page = $abs-page-number]
                                               [normalize-space(@message) ne '']"
-              as="element(error)+"
+              as="element(error)*"
               tunnel="yes" />
           <xsl:with-param
               name="abs-page-number" select="string($abs-page-number)"
@@ -245,7 +246,7 @@
                 name="page-errors"
                 select="$errors-doc/errors/error[@page = $abs-page-number + 1]
                                                 [normalize-space(@message) ne '']"
-                as="element(error)+" tunnel="yes" />
+                as="element(error)*" tunnel="yes" />
             <xsl:with-param
                 name="abs-page-number"
                 select="string($abs-page-number + 1)"
