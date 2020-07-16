@@ -124,7 +124,7 @@
 <xsl:param name="default-lang" select="'en'" static="yes" />
 
 <!-- Error code numbers for analysis errors. -->
-<xsl:param name="error-codes" select="45953 to 45960"
+<xsl:param name="error-codes" select="45953 to 45961"
            as="xs:integer+" static="yes" />
 
 <xsl:param name="logfile" />
@@ -172,6 +172,9 @@
 <xsl:variable name="location-marker"
               select="'&#xA;location:: '" static="yes" />
 
+
+<!-- Variables for error messages found in log file. -->
+
 <!-- Get the errors reported for the Area Tree XML file. -->
 <xsl:variable name="errors-doc">
   <!--<xsl:message><xsl:copy-of select="$logfile-doc" /></xsl:message>-->
@@ -179,9 +182,17 @@
 </xsl:variable>
 
 <!-- Get just the errors. -->
-<xsl:variable name="errors" as="element(error)*">
-  <xsl:sequence select="$errors-doc/errors/error" />
-</xsl:variable>
+<xsl:variable name="errors" as="element(error)*"
+              select="$errors-doc/errors/error" />
+
+<!-- Only the error codes found in the log file, sorted by error
+     code. -->
+<xsl:variable
+    name="reported-error-codes" as="xs:string*"
+    select="distinct-values($errors[exists(@message)]/@code,
+                            'http://www.w3.org/2005/xpath-functions/collation/codepoint')" />
+
+<!-- Variables for page dimensions. -->
 
 <xsl:variable
     name="page-image-margin-left"
@@ -263,6 +274,8 @@
 </xsl:attribute-set>
 
 <xsl:attribute-set name="error-label">
+  <xsl:attribute name="keep-together.within-line"
+                 select="'always'" />
   <xsl:attribute name="axf:number-transform"
                  select="'filled-circled-decimal'" />
 </xsl:attribute-set>
@@ -459,27 +472,24 @@
 <!-- ============================================================= -->
 
 <xsl:template name="root">
-  <xsl:param name="all-pages-info"
-             select="accumulator-after('all-pages-info')"
-             as="array(array(item()))"
-             tunnel="yes" />
-
   <fo:root xsl:use-attribute-sets="document-defaults">
+    <xsl:call-template name="layer-settings" />
     <xsl:call-template name="layout-master-set" />
     <xsl:call-template name="declarations" />
-    <xsl:call-template name="report-summary">
-      <xsl:with-param name="all-pages-info"
-                      select="$all-pages-info"
-                      as="array(array(item()))"
-                      tunnel="yes" />
-    </xsl:call-template>
-    <xsl:call-template name="page-reports">
-      <xsl:with-param name="all-pages-info"
-                      select="$all-pages-info"
-                      as="array(array(item()))"
-                      tunnel="yes" />
-    </xsl:call-template>
+    <xsl:call-template name="report-summary" />
+    <xsl:call-template name="page-reports" />
   </fo:root>
+</xsl:template>
+
+<!-- Add axf:layer-settings to fo:root. -->
+<xsl:template name="layer-settings" as="attribute(axf:layer-settings)">
+  <xsl:attribute name="axf:layer-settings">
+    <xsl:for-each select="$reported-error-codes">
+      <xsl:sort select="ahf:l10n(.)" />
+      <xsl:sequence select="if (position() > 1) then ', ' else ()" />
+      <xsl:value-of select="concat('&quot;', ahf:l10n(.), '&quot;')" />
+    </xsl:for-each>
+  </xsl:attribute>
 </xsl:template>
 
 <xsl:template name="layout-master-set">
@@ -626,7 +636,9 @@
         </fo:table-cell>
         <fo:table-cell xsl:use-attribute-sets="table-cell">
           <fo:block>
-            <xsl:value-of select="array:size($all-pages-info)" />
+            <xsl:value-of
+                select="format-number(array:size($all-pages-info),
+                                      '#,###')" />
           </fo:block>
         </fo:table-cell>
       </fo:table-row>
@@ -638,7 +650,9 @@
         </fo:table-cell>
         <fo:table-cell xsl:use-attribute-sets="table-cell">
           <fo:block>
-            <xsl:value-of select="count($errors[exists(@message)])" />
+            <xsl:value-of
+                select="format-number(count($errors[exists(@message)]),
+                                      '#,###')" />
           </fo:block>
           <xsl:if test="exists($errors[exists(@message)])">
             <fo:table width="100%" xsl:use-attribute-sets="table">
@@ -664,24 +678,26 @@
                 </fo:table-row>
               </fo:table-header>
               <fo:table-body>
-                <xsl:for-each
-                  select="distinct-values($errors[exists(@message)]/@code)">
-                  <xsl:sort
-                      select="ahf:l10n($errors[@code = current()][exists(@message)][1]/substring-before(@message, ':'))" />
+                <xsl:for-each select="$reported-error-codes">
+                  <xsl:sort select="ahf:l10n(.)" />
                   <fo:table-row xsl:use-attribute-sets="table-row">
                     <fo:table-cell xsl:use-attribute-sets="table-cell">
                       <fo:block>
-                        <xsl:value-of select="ahf:l10n($errors[@code = current()][exists(@message)][1]/substring-before(@message, ':'))" />
+                        <xsl:value-of select="ahf:l10n(.)" />
                       </fo:block>
                     </fo:table-cell>
                     <fo:table-cell xsl:use-attribute-sets="table-cell-number">
                       <fo:block>
-                        <xsl:value-of select="count($errors[@code = current()][exists(@message)])" />
+                        <xsl:value-of
+                            select="format-number(count($errors[@code = current()][exists(@message)]),
+                                                  '#,###')" />
                       </fo:block>
                     </fo:table-cell>
                     <fo:table-cell xsl:use-attribute-sets="table-cell-number">
                       <fo:block>
-                        <xsl:value-of select="count(distinct-values($errors[@code = current()][exists(@message)]/@page))" />
+                        <xsl:value-of
+                            select="format-number(count(distinct-values($errors[@code = current()][exists(@message)]/@page)),
+                                                  '#,###')" />
                       </fo:block>
                     </fo:table-cell>
                   </fo:table-row>
@@ -806,10 +822,11 @@
                   max-height="2em"
                   max-width="2em" />
             </axf:form-field>
-
           </xsl:when>
           <xsl:otherwise>
-            <fo:inline
+            <axf:form-field
+                field-type="button"
+                axf:field-description="{ahf:page-n-m($page-info)}"
                 border="{$page-image-border-width} solid {$thumbnail-border-color}">
               <fo:external-graphic
                   src="{$pdf-file}#page={.}"
@@ -817,7 +834,7 @@
                   alignment-baseline="after-edge"
                   max-height="2em"
                   max-width="2em" />
-            </fo:inline>
+              </axf:form-field>
           </xsl:otherwise>
         </xsl:choose>
       </xsl:for-each>
@@ -880,7 +897,7 @@
               name="page-errors"
               select="$errors-doc/errors/error[@page = $abs-page-number]
                                               [normalize-space(@message) ne '']"
-              as="element(error)+"
+              as="element(error)*"
               tunnel="yes" />
           <xsl:with-param
               name="abs-page-number" select="$abs-page-number"
@@ -896,7 +913,7 @@
               name="page-errors"
               select="$errors-doc/errors/error[@page = $abs-page-number]
                                               [normalize-space(@message) ne '']"
-              as="element(error)+"
+              as="element(error)*"
               tunnel="yes" />
           <xsl:with-param
               name="abs-page-number" select="$abs-page-number"
@@ -920,7 +937,7 @@
 </xsl:template>
 
 <xsl:template name="page-error-list">
-  <xsl:param name="page-errors" as="element(error)+" tunnel="yes"
+  <xsl:param name="page-errors" as="element(error)*" tunnel="yes"
              required="yes" />
   <xsl:param name="abs-page-number" as="xs:string" tunnel="yes"
              required="yes" />
@@ -937,7 +954,8 @@
           select="count($page-errors[. &lt;&lt; current()][exists(@message)]) + 1"
           as="xs:integer" />
       <!--<xsl:message select="count(current-group())" />-->
-      <fo:list-item xsl:use-attribute-sets="list-item">
+      <fo:list-item xsl:use-attribute-sets="list-item"
+                    axf:layer="{ahf:l10n(@code)}">
         <fo:list-item-label
             xsl:use-attribute-sets="error-label list-item-label">
           <fo:block>
@@ -948,8 +966,11 @@
                                            $use-position,
                                            $item-number-offset)" />
               </xsl:when>
+              <!-- Circled digits up to 20 are available.  Above 20,
+                   two or more digit characters are used, which take
+                   more space than circled digits. -->
               <xsl:when test="count(current-group()) = (2, 3) and
-                                  $use-position + count(current-group()) - 1 &lt;= 20">
+                              $use-position + count(current-group()) - 1 + $item-number-offset &lt;= 20">
                 <xsl:attribute
                     name="end-indent"
                     select="string-join(('label-end() - ',
@@ -972,7 +993,8 @@
                                            $use-position,
                                            $item-number-offset)" />
                 <xsl:for-each
-                    select="$use-position + 1 to $use-position + count(current-group()) - 2">
+                    select="$use-position + 1 to
+                              $use-position + count(current-group()) - 2">
                   <fo:wrapper
                       id="_to_{ahf:error-id($abs-page-number, .)}" />
                 </xsl:for-each>
@@ -989,8 +1011,12 @@
         <fo:list-item-body
             xsl:use-attribute-sets="list-item-body"
             text-indent="{if (count(current-group()) = 1) then '0'
-                          else if (count(current-group()) = 2) then '1em'
-                          else if (count(current-group()) = 3) then '2em'
+                          else if (count(current-group()) = 2 and
+                                   $use-position + count(current-group()) - 1 + $item-number-offset &lt;= 20)
+                            then '1em'
+                          else if (count(current-group()) = 3 and
+                                   $use-position + count(current-group()) - 1 + $item-number-offset &lt;= 20)
+                            then '2em'
                           else if ($use-position + $item-number-offset + count(current-group()) - 1 >= 100)
                             then '3em'
                           else '2em'}">
@@ -1069,6 +1095,7 @@
           as="xs:integer" />
       <!-- Extent of error region. -->
       <fo:block-container
+          axf:layer="{ahf:l10n(@code)}"
           position="absolute"
           left="{concat(@ax * $page-scale, 'pt')}"
           top="{concat(@ay * $page-scale, 'pt')}"
@@ -1090,19 +1117,33 @@
                       then ahf:l10n($left-offset-key)
                     else '0pt'"
             as="xs:string" />
+        <xsl:variable
+            name="top-offset-key"
+            select="string-join(('report-', @code, '-top'), '')"
+            as="xs:string" />
+        <xsl:variable
+            name="top-offset"
+            select="if (not(ahf:l10n($top-offset-key) = $top-offset-key))
+                      then ahf:l10n($top-offset-key)
+                    else '0pt'"
+            as="xs:string" />
         <fo:block-container
+            axf:layer="{ahf:l10n(@code)}"
             position="absolute" width="2em" height="2em"
             left="{concat(@ax * $page-scale, 'pt')} + {$left-offset}"
-            top="{concat(@ay * $page-scale, 'pt')}">
+            top="{concat(@ay * $page-scale, 'pt')} + {$top-offset}">
           <!--<fo:float axf:float="right page" clear="both">-->
           <fo:block
               id="{ahf:error-id($abs-page-number, $group-position)}"
               xsl:use-attribute-sets="error-label"
               color="{ahf:color($use-position)}">
-            <fo:basic-link
-                internal-destination="_to_{ahf:error-id($abs-page-number, $group-position)}">
+            <axf:form-field
+                field-type="button"
+                axf:field-description="{ahf:message-l10n(@message)}"
+                internal-destination="_to_{ahf:error-id($abs-page-number, $group-position)}"
+                action-type="goto">
               <xsl:value-of select="$use-position" />
-            </fo:basic-link>
+            </axf:form-field>
           </fo:block><!--</fo:float>-->
         </fo:block-container>
       </xsl:if>
