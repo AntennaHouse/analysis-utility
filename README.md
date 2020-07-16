@@ -90,16 +90,24 @@ Ant properties can be set in `properties.local.xml` in the current directory or 
 
 The provided stylesheet generates the XSL-FO for a report that comprises a summary page (or pages) plus a separate page for every page in the source document for which an error is reported.
 
+### Summary page
+
 The first summary page contains some information about the source document and the AH Formatter version that was used to format the source document followed by thumbnail images of the pages of the formatted document. If there are too many images to fit on one page, the images continue on further pages.
 
 ![Report summary page](img/report-summary.png "Report summary page")
 
-The thumbnails of pages that contain errors are shown with a red border. When viewing the PDF in a reader, hovering your mouse over a thumbnail shows a tooltip that shows the page number and a summary of the errors. Clicking on a thumbnail of a page jumps to the report page for that page.
+The thumbnails of pages that contain errors are shown with a red border. The intensity of the red border increases as the number of errors on the page increases.
 
-A report page contains an image of the formatted source page plus a list of the errors on that page. The page image is annotated to show the position of the error areas.
+When viewing the PDF in a reader, hovering your mouse over a thumbnail brings up a tooltip that shows the page number and a summary of the errors. Clicking on a thumbnail of a page jumps to the report page for that page.
+
+### Report pages
+
+A report page contains images of pairs of formatted source pages plus a list of the errors on those pages. The page images are annotated to show the position of the error areas. The annotations cycle through a range of colors to make it easier to see which annotation corresponds to which error message. Consecutive errors with the same error message are grouped into one item in the error list.
 
 
 ![Report page](img/report-page.png "Report page")
+
+When viewing the PDF in a reader, hovering your mouse over a callout number on the page image brings up a tooltip that shows the applicable error message. Clicking on the tooltip jumps to the corresponding error message in the error list. Additionally, clicking on an error number in the error list jumps to the corresponding callout number on the page image.
 
 
 ## Localization
