@@ -199,7 +199,13 @@
                 name="abs-page-number" select="string($abs-page-number + 1)"
                 as="xs:string" tunnel="yes" />
             <xsl:with-param
-                name="page-image-available-width" select="59"
+                name="page-image-available-width"
+                select="(ahf:mm(($page-width,
+                                 '-', $page-margin,
+                                 '-', $page-margin)) -
+                         ahf:mm($compact.per-page-block-container.column-gap) *
+                         ($compact.per-page-block-container.column-count - 1)) div
+                         $compact.per-page-block-container.column-count"
                 as="xs:double" tunnel="yes" />
             <xsl:with-param
                 name="item-number-offset" select="$first-page-item-count"
