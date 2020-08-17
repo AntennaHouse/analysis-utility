@@ -1256,7 +1256,7 @@
                   else ()" />
       <xsl:analyze-string
           select="replace($message, '^[^:]+:+(.*)', '$1')"
-          regex="((;?)\s+)([^ :;]+): ">
+          regex="((;?)\s+)([^:;]+): ">
         <xsl:matching-substring>
           <xsl:sequence
               select="if (regex-group(2) eq ';')
