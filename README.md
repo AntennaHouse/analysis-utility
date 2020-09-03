@@ -47,22 +47,44 @@ The stylesheet generates a PDF report . An alternative XSLT stylesheet can be sp
 ## Linux
 
 ````
-usage: analyzer.sh -d file [-opt "options"] [-lang lang] [-ahfcmd AHFCmd]
+usage: analyzer.sh -d file [-format format] [-lang lang]
+                   [-ahfcmd AHFCmd] [-opt "options\]
                    [-xslt xslt] [-xsltparam "xslt-params" ]
-
+                   [-pdfver pdfver]
+    echo
        file    : File to format and analyze
-       options : Additional AHFCmd command-line parameters
+       format  : Analysis result format -- annotate or report
+                 Default is 'annotate'
        lang    : Language for error messages -- en or ja
-       AHFCmd  : Location of 'run.sh'
+                 Default is 'en'
+       AHFCmd  : Path to 'AHFCmd' or 'run.sh'
+       options : Additional AHFCmd command-line parameters
        xslt    : XSLT stylesheet to use
-	   xslt-params : XSLT processor options and parameters
+       xslt-params : XSLT processor options and parameters
+       pdfver  : PDF version of reports. Default is 'PDF1.7'
 ````
 
-Requires `xsltproc` and `getopt` to be on the path.
+`analyzer.sh` generates a report in one of two formats:
 
-Expects AH Formatter to be installed at `/usr/AHFormatterV70_64/run.sh`.
+- `-format annotate` (the default) generates a PDF version of the formatted source document that has additional PDF annotations and PDF layers.
+- `-format report` generates a PDF report that includes a copy of every page that contains an analysis error.
+
+Requires `getopt` to be on the path.
+
+Expects AH Formatter to be installed at `/usr/AHFormatterV70_64/run.sh`. An alternative AH Formatter may be specified with `-ahfcmd`.
+
+### `-format annotate`
+
+This runs an XSLT 1.0 stylesheet and requires `xsltproc` to be on the path.
 
 The script uses its built-in `annotate.xsl` stylesheet to annotate the Area Tree XML for the formatted document with indications of the error areas. An alternative XSLT stylesheet can be specified with the `-xslt` parameter. Additional options and parameters can be passed to the XSLT processor with the `-xsltparam` parameter. The options and parameters must be in the correct syntax for the XSLT processor that will be used, since the `-xsltparam` value is not modified before being used.
+
+### `-format report`
+
+This runs the built-in `compact-report.xsl` XSLT 3.0 stylesheet and requires `java` to be on the PATH.
+
+
+The stylesheet generates a PDF report . An alternative XSLT stylesheet can be specified with the `-xslt` parameter. Additional options and parameters can be passed to the XSLT processor with the `-xsltparam` parameter. The options and parameters must be in the correct syntax for the XSLT processor that will be used, since the `-xsltparam` value is not modified before being used.
 
 ## Apache Ant
 
