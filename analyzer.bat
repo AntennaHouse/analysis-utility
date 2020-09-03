@@ -47,7 +47,7 @@ goto start
 
 :usage
 echo.
-echo Analyze a formatted file and generate annotated PDF
+echo Analyze a formatted file and generate a PDF report
 
 :usage_command_line
 echo.
