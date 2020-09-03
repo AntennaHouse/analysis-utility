@@ -1,6 +1,5 @@
 @echo off
 
-
 rem    Copyright 2020 Antenna House, Inc.
 rem 
 rem    Licensed under the Apache License, Version 2.0 (the "License");
@@ -161,6 +160,8 @@ if not exist "%d%" (
 )
 set BASENAME=
 call :sub_basename BASENAME "%FILE%"
+set EXT=
+call :sub_ext EXT "%FILE%"
 
 rem echo '%FILE%' '%BASENAME%'
 
@@ -390,7 +391,7 @@ rem Whether or not to regenerate %BASENAME%.pdf...
 
 if "%force%"=="yes" goto report_pdf_do
 
-for /F "usebackq delims=" %%q in (`dir /B /OD "%BASENAME%.fo" "%BASENAME%.pdf"`) do (
+for /F "usebackq delims=" %%q in (`dir /B /OD "%BASENAME%%EXT%" "%BASENAME%.pdf"`) do (
     set NEWER=%%q
 )
 rem echo %NEWER%
@@ -409,7 +410,7 @@ goto report_pdf_done
 
 :report_pdf_do
 
-call :sub_2pdf "%PWD%\%BASENAME%.fo" "%PWD%\%BASENAME%.pdf" "%PWD%\%BASENAME%.pdf.log" "%opt%"
+call :sub_2pdf "%PWD%\%BASENAME%%EXT%" "%PWD%\%BASENAME%.pdf" "%PWD%\%BASENAME%.pdf.log" "%opt%"
 
 if %ERRORLEVEL% NEQ 0 (
    echo An error occurred when generating '%BASENAME%.pdf'. Check log file '%BASENAME%.pdf.log'.
@@ -420,7 +421,7 @@ if %ERRORLEVEL% NEQ 0 (
 
 rem Whether or not to regenerate %BASENAME%.report.fo...
 
-for /F "delims=" %%q in ('dir /B /OD "%BASENAME%.fo" "%BASENAME%.log.xml" "%BASENAME%.report.fo"') do (
+for /F "delims=" %%q in ('dir /B /OD "%BASENAME%%EXT%" "%BASENAME%.log.xml" "%BASENAME%.report.fo"') do (
     set NEWER=%%q
 )
 rem echo %NEWER%
@@ -501,6 +502,11 @@ exit /B 1
 :sub_basename_ext
 rem echo %1 %2
 set "%~1=%~nx2"
+exit /B 1
+
+:sub_ext
+rem echo %1 %2
+set "%~1=%~x2"
 exit /B 1
 
 :sub_mod_date
