@@ -14,8 +14,11 @@
 <entry key="character limit">文字数限界</entry>
 <entry key="Consecutive hyphens">ハイフンで終わる行</entry>
 <entry key="Count">回数</entry>
+<entry key="count">回数</entry>
 <entry key="Error">エラー</entry>
 <entry key="Errors">エラー</entry>
+<entry key="Excess blank page">余分な空白ページ</entry>
+<entry key="Excess blank pages">余分な空白ページ</entry>
 <entry key="File">ファイル</entry>
 <entry key="length">長さ</entry>
 <entry key="limit">限界</entry>
