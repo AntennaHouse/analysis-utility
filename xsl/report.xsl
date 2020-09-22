@@ -123,6 +123,9 @@
 <!-- For 'ahf-l10n.xsl'. -->
 <xsl:param name="default-lang" select="'en'" static="yes" />
 
+<!-- Default font-size. -->
+<xsl:param name="default-font-size" select="'10pt'" static="yes" />
+
 <!-- Error code numbers for analysis errors. -->
 <xsl:param name="error-codes" select="45953 to 45959"
            as="xs:integer+" static="yes" />
@@ -271,6 +274,8 @@
 <xsl:attribute-set name="document-defaults">
   <xsl:attribute name="font-family"
                  select="'sans-serif, ''MS PGothic'''" />
+  <xsl:attribute name="font-size"
+                 select="$default-font-size" />
 </xsl:attribute-set>
 
 <xsl:attribute-set name="error-label">
@@ -728,6 +733,15 @@
              select="accumulator-after('all-pages-info')"
              as="array(array(item()))"
              tunnel="yes" />
+  <xsl:param name="thumbnail-font-size"
+             select="$default-font-size"
+             as="xs:string"
+             tunnel="yes" />
+
+  <xsl:variable
+      name="thumbnail-max"
+      select="ahf:mm($thumbnail-font-size) * 2"
+      as="xs:double" />
 
   <fo:block-container orphans="1" widows="1" space-before="1em"
                       keep-with-previous.within-page="always">
@@ -749,8 +763,13 @@
             select="xs:string(.)"
             as="xs:string" />
         <xsl:variable
+            name="page-errors"
+            select="$errors-doc/errors/error[@page = $abs-page-number]
+                                            [normalize-space(@message) ne '']"
+            as="element(error)*" />
+        <xsl:variable
             name="error-count"
-            select="count($errors-doc/errors/error[@page = $abs-page-number])"
+            select="count($page-errors)"
             as="xs:integer" />
         <xsl:variable
             name="has-errors"
@@ -777,12 +796,31 @@
             select="ahf:mm($page-info(5))"
             as="xs:double" />
 
+        <xsl:variable
+            name="thumbnail-scale"
+            select="min(($thumbnail-max div $this-page-height,
+                         $thumbnail-max div $this-page-width,
+                         1))"
+            as="xs:double" />
+
+        <!--<xsl:if test="position() = 1">
+          <xsl:value-of select="$thumbnail-max, $this-page-width, $thumbnail-scale" />
+        </xsl:if>-->
+
         <xsl:if test="position() != 1">
           <xsl:text> </xsl:text>
         </xsl:if>
 
-        <xsl:choose>
-          <xsl:when test="$has-errors">
+        <fo:inline-container
+            height="{format-number($this-page-height * $thumbnail-scale +
+                                     ahf:mm($page-image-border-width) * 2,
+                                   '0.####')}mm + 1pt"
+            width="{format-number($this-page-width * $thumbnail-scale +
+                                    ahf:mm($page-image-border-width) * 2,
+                                  '0.####')}mm + 1pt"
+                  alignment-baseline="after-edge" >
+          <fo:block-container>
+            <fo:block>
             <xsl:variable
                 name="messages"
                 select="$errors-doc/errors/error[@page = $abs-page-number]/
@@ -812,22 +850,14 @@
             <axf:form-field
                 field-type="button"
                 axf:field-description="{$tooltip}"
-                internal-destination="__report_page_{$abs-page-number}"
-                action-type="goto"
-                border="{$page-image-border-width} solid {$thumbnail-border-color}">
-              <fo:external-graphic
-                  src="{$pdf-file}#page={.}"
-                  border="0.5pt solid silver"
-                  alignment-baseline="after-edge"
-                  max-height="2em"
-                  max-width="2em" />
-            </axf:form-field>
-          </xsl:when>
-          <xsl:otherwise>
-            <axf:form-field
-                field-type="button"
-                axf:field-description="{ahf:page-n-m($page-info)}"
-                border="{$page-image-border-width} solid {$thumbnail-border-color}">
+                border="{$page-image-border-width} solid transparent">
+              <xsl:if test="$has-errors">
+                <xsl:attribute
+                    name="internal-destination"
+                    select="concat('__report_page_', $abs-page-number)" />
+                <xsl:attribute
+                    name="action-type" select="'goto'" />
+        </xsl:if>
               <fo:external-graphic
                   src="{$pdf-file}#page={.}"
                   border="0.5pt solid silver"
@@ -835,8 +865,33 @@
                   max-height="2em"
                   max-width="2em" />
               </axf:form-field>
-          </xsl:otherwise>
-        </xsl:choose>
+        </fo:block>
+        </fo:block-container>
+        <xsl:if test="$has-errors">
+          <xsl:for-each-group
+              select="$page-errors"
+              group-by="@code">
+            <fo:block-container
+                position="absolute"
+                z-index="-{position()}"
+                axf:layer="{ahf:l10n(current-grouping-key())}">
+            <fo:block>
+              <fo:inline
+                  border="{$page-image-border-width} solid {ahf:thumbnail-border-color(count(current-group()))}">
+              <fo:external-graphic
+                  src="{$pdf-file}#page={$abs-page-number}"
+                  border="0.5pt solid silver"
+                  alignment-baseline="after-edge"
+                  max-height="100%"
+                  max-width="100%"
+                  content-width="{format-number($this-page-width * $thumbnail-scale,
+                                           '0.####')}mm" />
+            </fo:inline>
+          </fo:block>
+          </fo:block-container>
+          </xsl:for-each-group>
+        </xsl:if>
+      </fo:inline-container>
       </xsl:for-each>
     </fo:block>
   </fo:block-container>
@@ -930,8 +985,7 @@
   <xsl:param name="abs-page-number" as="xs:string" tunnel="yes" />
   <xsl:param name="page-info" as="array(xs:string)" tunnel="yes" />
 
-  <fo:block id="__report_page_{$abs-page-number}"
-            xsl:use-attribute-sets="per-page-title">
+  <fo:block xsl:use-attribute-sets="per-page-title">
     <xsl:value-of select="ahf:page-n-m($page-info)" />
   </fo:block>
 </xsl:template>
@@ -966,9 +1020,10 @@
                                            $use-position,
                                            $item-number-offset)" />
               </xsl:when>
-              <!-- Circled digits up to 20 are available.  Above 20,
-                   two or more digit characters are used, which take
-                   more space than circled digits. -->
+              <!-- Circled digits up to 20 are defined in Unicode and
+                   are commonly available.  Above 20, two or more
+                   digit characters are used.  These take more space
+                   than circled digits. -->
               <xsl:when test="count(current-group()) = (2, 3) and
                               $use-position + count(current-group()) - 1 + $item-number-offset &lt;= 20">
                 <xsl:attribute
@@ -1069,6 +1124,7 @@
       </fo:block>
     </fo:block-container>
     <fo:block-container
+        id="__report_page_{$abs-page-number}"
         height="{format-number($this-page-height * $page-scale + 1,
                                '0.####')}mm">
       <fo:block text-depth="0" line-height="0" font-size="0"
