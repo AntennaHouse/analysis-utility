@@ -125,6 +125,8 @@
         </xsl:if>
         <fo:leader leader-length.optimum="100%" />
         <fo:page-number />
+        <xsl:value-of select="ahf:l10n('/')" />
+        <fo:page-number-citation-last ref-id="summary" />
       </fo:block>
     </fo:static-content>
     <fo:flow flow-name="xsl-region-body">
