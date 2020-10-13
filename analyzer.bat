@@ -37,6 +37,7 @@ set format=annotate
 set lang=en
 set opt=
 set pdfver=PDF1.7
+set show=yes
 set transformer=
 set xslt=
 set xsltparam=
@@ -55,7 +56,7 @@ echo usage: analyzer -d file [-format format] [-lang lang]
 echo                 [-ahfcmd AHFCmd] [-opt "options"]
 echo                 [-xslt xslt] [-xsltparam "xslt-params" ]
 echo                 [-transformer transformer ]
-echo                 [-pdfver pdfver] [-force yes]
+echo                 [-pdfver pdfver] [-force yes] [-show no]
 echo.
 echo        file    : File to format and analyze
 echo        format  : Analysis result format -- annotate or report
@@ -70,6 +71,7 @@ echo        transformer : XSLT 1.0 processor -- msxsl, xsltproc, or saxon6
 echo                      Used with 'annotate' result format only
 echo        pdfver  : PDF version of reports. Default is '%pdfver%'
 echo        -force yes  : Force all stages to run
+echo        -show no    : Do not open the PDF report
 echo.
 goto done
 
@@ -88,7 +90,7 @@ set __short_param= f
 rem List of names of recognized parameters that require a value.
 rem There must be at least one space (' ') at the beginning and end of
 rem the list and between parameter names.
-set __long_param= ahfcmd d force format lang opt pdfver transformer xslt xsltparam 
+set __long_param= ahfcmd d force format lang opt pdfver show transformer xslt xsltparam 
 
 rem List of all recognized parameter names.
 rem There must be at least one space (' ') at the beginning and end of
@@ -365,7 +367,10 @@ rem View the PDF
 if exist "%BASENAME%.annotated.pdf" (
    echo Analysis completed.
    echo Annotated PDF: '%BASENAME%.annotated.pdf'
-   "%BASENAME%.annotated.pdf"
+
+   if "%show%" == "yes" (
+      "%BASENAME%.annotated.pdf"
+   )
 ) else (
    echo An error occurred when generating '%BASENAME%.annotated.pdf'. Check log file '%BASENAME%.annotated.pdf.log'.
    goto error
@@ -478,7 +483,10 @@ rem View the PDF
 if exist "%BASENAME%.report.pdf" (
    echo Analysis completed.
    echo Report PDF: '%BASENAME%.report.pdf'
-   "%BASENAME%.report.pdf"
+
+   if "%show%" == "yes" (
+      "%BASENAME%.report.pdf"
+   )
 ) else (
    echo An error occurred when generating '%BASENAME%.report.pdf'. Check log file '%BASENAME%.report.pdf.log'.
    goto error
