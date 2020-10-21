@@ -1,4 +1,10 @@
-# `analysis-utility` - AH Formatter Analysis Utility
+* [English](#en)
+* [日本語](#ja)
+
+----
+
+# <a name="en"></a>`analysis-utility` - AH Formatter Analysis Utility
+
 Stylesheets and scripts for working with the results from AH Formatter automated analysis.
 
 ## Windows
@@ -8,7 +14,7 @@ usage: analyzer -d file [-format format] [-lang lang]
                 [-ahfcmd AHFCmd] [-opt "options"]
                 [-xslt xslt] [-xsltparam "xslt-params" ]
                 [-transformer transformer ]
-                [-pdfver pdfver] [-force yes]
+                [-pdfver pdfver] [-force yes] [-show no]
 
        file    : File to format and analyze
        format  : Analysis result format -- annotate or report
@@ -23,6 +29,7 @@ usage: analyzer -d file [-format format] [-lang lang]
                      Used with 'annotate' result format only
        pdfver  : PDF version of reports. Default is 'PDF1.7'
        -force yes  : Force all stages to run
+       -show no    : Do not open the PDF report
 ````
 
 `analyzer` generates a report in one of two formats:
@@ -30,25 +37,27 @@ usage: analyzer -d file [-format format] [-lang lang]
 - `-format annotate` (the default) generates a PDF version of the formatted source document that has additional PDF annotations and PDF layers.
 - `-format report` generates a PDF report that includes a copy of every page that contains an analysis error.
 
+The PDF opens automatically unless `-show no` is specified.
+
 ### `-format annotate`
 
 This runs an XSLT 1.0 stylesheet and requires `msxsl.exe`, `xsltproc.exe`, or `java.exe` to be on the PATH. The script will use the first of these that it finds, or a specific processor can be selected with the `-transformer` parameter.
 
 `msxsl.exe` can be downloaded from https://www.microsoft.com/en-us/download/details.aspx?id=21714
 
-The script uses its built-in `annotate.xsl` stylesheet to annotate the Area Tree XML for the formatted document with indications of the error areas. An alternative XSLT stylesheet can be specified with the `-xslt` parameter. Additional options and parameters can be passed to the XSLT processor with the `-xsltparam` parameter. The options and parameters must be in the correct syntax for the XSLT processor that will be used, since the `-xsltparam` value is not modified before being used.
+The script uses its built-in `annotate.xsl` stylesheet to annotate the Area Tree XML for the formatted document with indications of the error areas. An alternative XSLT stylesheet can be specified with the `-xslt` parameter. Additional options and parameters can be passed to the XSLT processor with the `-xsltparam` parameter. The options and parameters must be in the correct syntax for the XSLT processor that will be used, because the `-xsltparam` value is not modified before being used.
 
 ### `-format report`
 
 This runs the built-in `compact-report.xsl` XSLT 3.0 stylesheet and requires `java.exe` to be on the PATH.
 
-The stylesheet generates a PDF report . An alternative XSLT stylesheet can be specified with the `-xslt` parameter. Additional options and parameters can be passed to the XSLT processor with the `-xsltparam` parameter. The options and parameters must be in the correct syntax for the XSLT processor that will be used, since the `-xsltparam` value is not modified before being used.
+The stylesheet generates a PDF report. An alternative XSLT stylesheet can be specified with the `-xslt` parameter. Additional options and parameters can be passed to the XSLT processor with the `-xsltparam` parameter. The options and parameters must be in the correct syntax for the XSLT processor that will be used, because the `-xsltparam` value is not modified before being used.
 
 ## Linux
 
 ````
 usage: analyzer.sh -d file [-format format] [-lang lang]
-                   [-ahfcmd AHFCmd] [-opt "options\]
+                   [-ahfcmd AHFCmd] [-opt "options"]
                    [-xslt xslt] [-xsltparam "xslt-params" ]
                    [-pdfver pdfver]
     echo
@@ -71,20 +80,20 @@ usage: analyzer.sh -d file [-format format] [-lang lang]
 
 Requires `getopt` to be on the path.
 
-Expects AH Formatter to be installed at `/usr/AHFormatterV70_64/run.sh`. An alternative AH Formatter may be specified with `-ahfcmd`.
+Expects AH Formatter to be installed at `/usr/AHFormatterV70_64/run.sh`. An alternative AH Formatter can be specified with `-ahfcmd`.
 
 ### `-format annotate`
 
 This runs an XSLT 1.0 stylesheet and requires `xsltproc` to be on the path.
 
-The script uses its built-in `annotate.xsl` stylesheet to annotate the Area Tree XML for the formatted document with indications of the error areas. An alternative XSLT stylesheet can be specified with the `-xslt` parameter. Additional options and parameters can be passed to the XSLT processor with the `-xsltparam` parameter. The options and parameters must be in the correct syntax for the XSLT processor that will be used, since the `-xsltparam` value is not modified before being used.
+The script uses its built-in `annotate.xsl` stylesheet to annotate the Area Tree XML for the formatted document with indications of the error areas. An alternative XSLT stylesheet can be specified with the `-xslt` parameter. Additional options and parameters can be passed to the XSLT processor with the `-xsltparam` parameter. The options and parameters must be in the correct syntax for the XSLT processor that will be used, because the `-xsltparam` value is not modified before being used.
 
 ### `-format report`
 
 This runs the built-in `compact-report.xsl` XSLT 3.0 stylesheet and requires `java` to be on the PATH.
 
 
-The stylesheet generates a PDF report . An alternative XSLT stylesheet can be specified with the `-xslt` parameter. Additional options and parameters can be passed to the XSLT processor with the `-xsltparam` parameter. The options and parameters must be in the correct syntax for the XSLT processor that will be used, since the `-xsltparam` value is not modified before being used.
+The stylesheet generates a PDF report. An alternative XSLT stylesheet can be specified with the `-xslt` parameter. Additional options and parameters can be passed to the XSLT processor with the `-xsltparam` parameter. The options and parameters must be in the correct syntax for the XSLT processor that will be used, because the `-xsltparam` value is not modified before being used.
 
 ## Apache Ant
 
@@ -106,7 +115,7 @@ ant -f build.xml ahfcmd-report-pdf.single -Dsingle=<file> -Dlang=<lang>
 
 ### Customizing Ant
 
-Ant properties can be set in `properties.local.xml` in the current directory or in `system.local.properties` in the **analysis-utility** directory. Do not modify `system.properties` as your changes could be overwritten when **analysis-utility** is updated.
+Ant properties can be set in `properties.local.xml` in the current directory or in `system.local.properties` in the **analysis-utility** directory. Do not modify `system.properties` because your changes could be overwritten when **analysis-utility** is updated.
 
 ## Report PDF
 
@@ -136,6 +145,152 @@ When viewing the PDF in a reader, hovering your mouse over a callout number on t
 
 The `-lang` parameter specifies the language of generated text in the PDFs generated by these scripts.
 
-The localized strings are specified in property files in the `xslt/locales` directory. These file are in the Java XML property file format.
+The localized strings are specified in property files in the `xsl/locales` directory. These file are in the Java XML property file format.
 
-Support for a new language may be added by copying and modifying `ja.xml`.
+Support for a new language can be added by copying and modifying `ja.xml`.
+
+# <a name="ja"></a>`analysis-utility` - AH Formatter 英語組版結果の分析機能
+
+分析機能を処理するための AH Formatter 分析ユーティリティのスタイルシートとスクリプト
+
+## Windows
+
+````
+使い方: analyzer -d ファイル [-format 形式] [-lang 言語]
+                [-ahfcmd AHFCmd] [-opt "オプション"]
+                　[-xslt xslt] [-xsltparam "xslt-パラム"]
+                [-transformer トランスフォーマー]
+                [-pdfver pdfver] [-force yes] [-show no]
+
+       ファイル    : 組版して分析するファイル
+       形式  : 組版結果の分析 -- annotate または report
+                 既定値は 'annotate'
+       言語    : エラーメッセージの既定 -- en または ja
+                 既定値は 'en'
+       AHFCmd  : AHFCmd.exeへのパス
+       オプション : 追加の AHFCmd コマンドラインパラメータ
+       xslt    : 使用するXSLT スタイルシート
+       xslt-パラム : XSLT プロセッサパラメータ
+       トランスフォーマー : XSLT 1.0 プロセッサ -- msxsl、xsltproc、saxon6 など
+                     'annotate' 組版結果のみで使用
+       pdfver  : PDF 版の報告既定値は 'PDF1.7'
+       -force yes  : すべての段階を強制的に実行する
+       -show no    : PDF 報告を開いていません
+````
+
+`analyzer`は ２つの形式のいずれかで報告を生成します：
+
+- `-format annotate` （既定値） は追加の PDF 注釈と PDF レイヤを持つ組版されたソース文書の PDF 版を生成します。
+- `-format report` は分析エラーを含むすべてのページ のコピーを含む PDF 報告を生成します。
+
+`-show no` が指定されていない限り、PDF は自動的に開きます。
+
+### `-format annotate`
+
+これは `msxsl.exe`、`xsltproc.exe`、`java.exe` など PATH 上にあることを必要とする XSLT 1.0 スタイルシートを実行します。スクリプトは検出した最初のプロセッサを使用するか、`-transformer` パラメータを使用して特定のプロセッサを選択できます。
+
+`msxsl.exe` は https://www.microsoft.com/en-us/download/details.aspx?id=21714 からダウンロードできます。
+
+スクリプトは組み込みの `annotate.xsl` スタイルシートを使用して、組版された文書のエリアツリー XML にエラー領域の表示を注釈として付けます。代替 XSLT スタイルシートは `-xslt` パラメータで指定できます。　追加のオプションとパラメータは、`-xsltparam`パラメータを使用して XSLT プロセッサに渡すことができます。オプションとパラメータは、使用される前に `-xsltparam` 値が変更されないため、使用される XSLT プロセッサの正しい構文である必要があります。
+
+### `-format report`
+
+これは組み込み `compact-report.xsl` XSLT 3.0 スタイルシートを実行し、 `java.exe` が PATH上にある必要があります。
+
+スタイルシートは PDF 報告を生成します。代替 XSLT スタイルシートは `-xslt` パラメータで指定できます。　追加のオプションとパラメータは、`-xsltparam`パラメータを使用して XSLT プロセッサに渡すことができます。オプションとパラメータは、使用される前に `-xsltparam` 値が変更されないため、使用される XSLT プロセッサの正しい構文である必要があります。
+
+## Linux
+
+````
+使い方: analyzer.sh -d ファイル [-format 形式] [-lang 言語]
+                   [-ahfcmd AHFCmd] [-opt "オプション"]
+                   　[-xslt xslt] [-xsltparam "xslt-パラム"]
+                   [-pdfver pdfver]
+    エコー
+       ファイル    : 組版して分析するファイル
+       形式  : 組版結果の分析 -- annotate または report
+                 既定値は 'annotate'
+       言語    : エラーメッセージの既定 -- en または ja
+                 既定値は 'en'
+       AHFCmd  : 'AHFCmd' または 'run.sh'へのパス
+       オプション : 追加の AHFCmd コマンドラインパラメータ
+       xslt    : 使用するXSLT スタイルシート
+       xslt-params : XSLT プロセッサオプションとパラメータ
+       pdfver  : PDF 版の報告既定値は 'PDF1.7'
+````
+
+`analyzer.sh` は ２つの形式のいずれかで報告を生成します：
+
+- `-format annotate` （既定値） は追加の PDF 注釈と PDF レイヤを持つ組版されたソース文書の PDF 版を生成します。
+- `-format report` は分析エラーを含むすべてのページ のコピーを含む PDF 報告を生成します。
+
+`getopt` が PATH上にある必要があります。
+
+AH Formatter が `/usr/AHFormatterV70_64/run.sh`にインストールされることを期待します。代替 AH Formatter は `-ahfcmd` で指定できます。
+
+### `-format annotate`
+
+これは `xsltproc` が PATH 上にあることを必要とする XSLT 1.0 スタイルシートを実行します。
+
+スクリプトは組み込みの `annotate.xsl` スタイルシートを使用して、組版された文書のエリアツリー XML にエラー領域の表示を注釈として付けます。代替 XSLT スタイルシートは `-xslt` パラメータで指定できます。　追加のオプションとパラメータは、`-xsltparam`パラメータを使用して XSLT プロセッサに渡すことができます。オプションとパラメータは、使用される前に `-xsltparam` 値が変更されないため、使用される XSLT プロセッサの正しい構文である必要があります。
+
+### `-format report`
+
+これは組み込み `compact-report.xsl` XSLT 3.0 スタイルシートを実行し、`java` が PATH上にある必要があります。
+
+
+スタイルシートは PDF 報告を生成します。代替 XSLT スタイルシートは `-xslt` パラメータで指定できます。　追加のオプションとパラメータは、`-xsltparam`パラメータを使用して XSLT プロセッサに渡すことができます。オプションとパラメータは、使用される前に `-xsltparam` 値が変更されないため、使用される XSLT プロセッサの正しい構文である必要があります。
+
+## Apache Ant
+
+### 注釈付き PDF
+````
+ant -f build.xml ahfcmd-annotated-pdf.single -Dsingle=<ファイル> -Dlang=<言語>
+
+       <ファイル>  : 組版して分析するファイル
+       <言語>  : エラーメッセージの既定 -- en または ja
+````
+
+### 報告 PDF
+````
+ant -f build.xml ahfcmd-report-pdf.single -Dsingle=<ファイル> -Dlang=<言語>
+
+       <ファイル>  : 組版して分析するファイル
+       <言語>  : エラーメッセージの既定 -- en または ja
+````
+
+### Ant のカスタマイズ
+
+Ant プロパティは、現在の `properties.local.xml` ディレクトリ または **analysis-utility** ディレクトリ の`system.local.properties` で設定できます。**analysis-utility** の更新ときに変更が上書きされる可能性があるため `system.properties` を変更しないでください。
+
+## 報告 PDF
+
+備わったスタイルシートは要約ページ（または複数ページ）と、エラーが報告されたソース文書内のページごとに個別のページで構成される報告の XSL-FO を生成します。
+
+### 要約ページ
+
+最初の要約ページには、ソース文書とソース文書の形式に使用された AH Formatter バージョンに関する情報が含まれ、その後に組版された文書のサムネールイメージが続きます。画像が多すぎて1ページに収まらない場合、画像は次のページに続きます。
+
+![Report summary page](img/report-summary.png "要約ページを報告する")
+
+エラーを含むページのサムネールは赤のボーダーで表示します。ページのエラーの数が増えると、赤のボーダーの強度が増えます。T
+
+リーダで PDF を表示しているときに、サムネールの上にマウスを持っていくとページ番号とエラーの要約数を示すツールチップが表示します。ページのサムネールをクリックすると、そのページの報告ページにジャンプします。
+
+### 報告ページ
+
+報告ページには組版されたソースページのペアの画像と、それらのページのエラーリストが含まれています。ページ画像には、エラー領域の位置を示す注釈が付けられています。注釈は、どの注釈がエラーメッセージに対応しているかを簡単に確認できるように、色の範囲を循環します。同じエラーメッセージの連続するエラーは、エラーリスト内の一つの項目にグループ化されます。
+
+
+![Report page](img/report-page.png "報告ページ")
+
+リーダで PDF を表示しているときに、ページ画像のコールアウト番号の上にマウスを持っていくと該当するエラーメッセージを示すツールチップが表示します。ページのツールチップをクリックすると、エラーリストの対応するエラーメッセージにジャンプします。さらに、エラーリスト内のエラー番号をクリックすると、ページ画像の対応するコールアウト番号にジャンプします。
+
+
+##  ローカリゼーション
+
+`-lang` パラメータはこれらのスクリプトによって生成された PDF で生成されたテキストの言語を指定します。
+
+ローカライズ された文字列は `xsl/locales` ディレクトリのプロパティファイルで指定されます。これらのファイルは、Java XML プロパティファイル形式です。
+
+`ja.xml`をコピーして変更することで、新しい言語のサポートを追加できます。
