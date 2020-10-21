@@ -1352,16 +1352,23 @@
 <xsl:function name="ahf:page-n-m" as="xs:string">
   <xsl:param name="page-info" as="array(xs:string)" />
 
-  <xsl:sequence
-      select="if ($page-info(2) = $page-info and
-                  $page-info(3) = '1')
-                then ahf:l10n('page-n',
-                              (format-number(number($page-info(2)),
-                                             $page-info(3))))
-              else ahf:l10n('page-n-m',
-                            (format-number(number($page-info(2)),
-                                           $page-info(3)),
-                             $page-info(4)))" />
+  <xsl:choose>
+    <xsl:when test="$page-info(2) = $page-info and $page-info(3) = '1'">
+      <xsl:sequence
+          select="ahf:l10n('page-n',
+                           (format-number(number($page-info(2)),
+                                                 $page-info(3))))" />
+    </xsl:when>
+    <xsl:otherwise>
+      <xsl:variable name="formatted-number" as="xs:string">
+        <xsl:number value="$page-info(2)" format="{$page-info(3)}" />
+      </xsl:variable>
+      <xsl:sequence
+          select="ahf:l10n('page-n-m',
+                           ($formatted-number,
+                            $page-info(1)))" />
+    </xsl:otherwise>
+  </xsl:choose>
 </xsl:function>
 
 
