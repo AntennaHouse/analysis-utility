@@ -125,7 +125,7 @@ The provided stylesheet generates the XSL-FO for a report that comprises a summa
 
 The first summary page contains some information about the source document and the AH Formatter version that was used to format the source document followed by thumbnail images of the pages of the formatted document. If there are too many images to fit on one page, the images continue on further pages.
 
-![Report summary page](img/report-summary.png "Report summary page")
+![Report summary page](img/report-summary-en.png "Report summary page")
 
 The thumbnails of pages that contain errors are shown with a red border. The intensity of the red border increases as the number of errors on the page increases.
 
@@ -136,7 +136,7 @@ When viewing the PDF in a reader, hovering your mouse over a thumbnail brings up
 A report page contains images of pairs of formatted source pages plus a list of the errors on those pages. The page images are annotated to show the position of the error areas. The annotations cycle through a range of colors to make it easier to see which annotation corresponds to which error message. Consecutive errors with the same error message are grouped into one item in the error list.
 
 
-![Report page](img/report-page.png "Report page")
+![Report page](img/report-page-en.png "Report page")
 
 When viewing the PDF in a reader, hovering your mouse over a callout number on the page image brings up a tooltip that shows the applicable error message. Clicking on the tooltip jumps to the corresponding error message in the error list. Additionally, clicking on an error number in the error list jumps to the corresponding callout number on the page image.
 
@@ -148,6 +148,8 @@ The `-lang` parameter specifies the language of generated text in the PDFs gener
 The localized strings are specified in property files in the `xsl/locales` directory. These file are in the Java XML property file format.
 
 Support for a new language can be added by copying and modifying `ja.xml`.
+
+----
 
 # <a name="ja"></a>`analysis-utility` - AH Formatter 英語組版結果の分析機能
 
@@ -271,7 +273,7 @@ Ant プロパティは、現在の `properties.local.xml` ディレクトリ ま
 
 最初の要約ページには、ソース文書とソース文書の形式に使用された AH Formatter バージョンに関する情報が含まれ、その後に組版された文書のサムネールイメージが続きます。画像が多すぎて1ページに収まらない場合、画像は次のページに続きます。
 
-![Report summary page](img/report-summary.png "要約ページを報告する")
+![Report summary page](img/report-summary-ja.png "要約ページを報告する")
 
 エラーを含むページのサムネールは赤のボーダーで表示します。ページのエラーの数が増えると、赤のボーダーの強度が増えます。T
 
@@ -282,7 +284,7 @@ Ant プロパティは、現在の `properties.local.xml` ディレクトリ ま
 報告ページには組版されたソースページのペアの画像と、それらのページのエラーリストが含まれています。ページ画像には、エラー領域の位置を示す注釈が付けられています。注釈は、どの注釈がエラーメッセージに対応しているかを簡単に確認できるように、色の範囲を循環します。同じエラーメッセージの連続するエラーは、エラーリスト内の一つの項目にグループ化されます。
 
 
-![Report page](img/report-page.png "報告ページ")
+![Report page](img/report-page-ja.png "報告ページ")
 
 リーダで PDF を表示しているときに、ページ画像のコールアウト番号の上にマウスを持っていくと該当するエラーメッセージを示すツールチップが表示します。ページのツールチップをクリックすると、エラーリストの対応するエラーメッセージにジャンプします。さらに、エラーリスト内のエラー番号をクリックすると、ページ画像の対応するコールアウト番号にジャンプします。
 
