@@ -127,7 +127,7 @@
 <xsl:param name="default-font-size" select="'10pt'" static="yes" />
 
 <!-- Error code numbers for analysis errors. -->
-<xsl:param name="error-codes" select="45953 to 45961"
+<xsl:param name="error-codes" select="45953 to 45963"
            as="xs:integer+" static="yes" />
 
 <xsl:param name="logfile" />

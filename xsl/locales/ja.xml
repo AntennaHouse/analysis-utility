@@ -9,6 +9,8 @@
 <entry key="45959">不均衡な見開きページ</entry>
 <entry key="45960">ホワイトスペース</entry>
 <entry key="45961">リバー</entry>
+<entry key="45962">ブロック前の行</entry>
+<entry key="45963">ブロック後の行</entry>
 <entry key="AH Formatter Analysis Report">AH Formatter分析報告</entry>
 <entry key="Analysis report">分析報告</entry>
 <entry key="character limit">文字数限界</entry>
@@ -22,6 +24,8 @@
 <entry key="File">ファイル</entry>
 <entry key="length">長さ</entry>
 <entry key="limit">限界</entry>
+<entry key="Lines after">後の行</entry>
+<entry key="Lines before">前の行</entry>
 <entry key="Lines ending with same text">同じテキスト単語で終わる連続する行</entry>
 <entry key="Lines starting with same text">同じテキスト単語で始まる連続する行</entry>
 <entry key="minimum">最低限</entry>
@@ -32,6 +36,7 @@
 <entry key="Pages">ページ</entry>
 <entry key="Page widow">ページウィドウ</entry>
 <entry key="Paragraph widow">段落ウィドウ</entry>
+<entry key="present">現行</entry>
 <entry key="River">リバー</entry>
 <entry key="Title">タイトル</entry>
 <entry key="Too many blank pages">文書の最後に空白のページ</entry>

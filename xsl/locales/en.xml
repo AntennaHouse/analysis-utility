@@ -9,6 +9,8 @@
 <entry key="45959">Unbalanced spread</entry>
 <entry key="45960">White-space</entry>
 <entry key="45961">River</entry>
+<entry key="45962">Lines before block</entry>
+<entry key="45963">Lines after block</entry>
 <entry key="page-n">Page %1</entry>
 <entry key="page-n-m">Page %1 (%2)</entry>
 <entry key="page-range-separator">&#x2013;</entry>
