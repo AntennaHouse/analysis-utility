@@ -445,10 +445,10 @@ if "%__SUB_ON_PATH_MATCH%"=="" (
    goto error
 )
 
-call :sub_mod_date FO_DATE "%BASENAME%.fo"
+call :sub_mod_date FILE_DATE "%BASENAME%%EXT%"
 
 echo Generating '%BASENAME%.report.fo' from '%BASENAME%.AT.xml'
-java -jar "%LIB_DIR%\saxon9he.jar" "-s:%PWD:\=/%/%BASENAME%.AT.xml" "-xsl:%REPORTER_XSLT:\=/%" "-o:%BASENAME%.report.fo" "logfile=file:///%PWD%/%BASENAME%.log.xml" lang=%lang% "file=%PWD:\=/%/%BASENAME%.fo" file-date="%FO_DATE%" "pdf-file=%PWD:\=/%/%BASENAME%.pdf" %xsltparam%
+java -jar "%LIB_DIR%\saxon9he.jar" "-s:%PWD:\=/%/%BASENAME%.AT.xml" "-xsl:%REPORTER_XSLT:\=/%" "-o:%BASENAME%.report.fo" "logfile=file:///%PWD%/%BASENAME%.log.xml" lang=%lang% "file=%PWD:\=/%/%BASENAME%%EXT%" file-date="%FILE_DATE%" "pdf-file=%PWD:\=/%/%BASENAME%.pdf" %xsltparam%
 
 if %ERRORLEVEL% NEQ 0 (
    echo.
