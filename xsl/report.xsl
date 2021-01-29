@@ -108,6 +108,10 @@
 <xsl:param name="debug" select="false()" as="xs:boolean"
            static="yes" />
 
+<!-- Whether to generate JavaScript in PDF output. -->
+<xsl:param name="javascript" select="true()" as="xs:boolean"
+           static="yes" />
+
 <!-- File name to report as source file. -->
 <xsl:param name="file" select="base-uri(.)" as="xs:string" />
 
@@ -564,6 +568,9 @@
     <axf:document-info
         name="fitwindow"
         value="true" />
+    <xsl:sequence
+        select="ahf:javascript-openaction($reported-error-codes)"
+        use-when="$javascript" />
   </fo:declarations>
 </xsl:template>
 
@@ -689,6 +696,9 @@
                     <fo:table-cell xsl:use-attribute-sets="table-cell">
                       <fo:block>
                         <xsl:value-of select="ahf:l10n(.)" />
+                        <xsl:sequence
+                            select="ahf:javascript-button(ahf:l10n(.))"
+                            use-when="$javascript" />
                       </fo:block>
                     </fo:table-cell>
                     <fo:table-cell xsl:use-attribute-sets="table-cell-number">
@@ -1349,6 +1359,9 @@
   </fo:basic-link>
 </xsl:function>
 
+<!-- ahf:page-n-m($page-info as array(xs:string)) as xs:string -->
+<!-- Generate a localized formatted string showing the current page
+     number and the total number of pages. -->
 <xsl:function name="ahf:page-n-m" as="xs:string">
   <xsl:param name="page-info" as="array(xs:string)" />
 
@@ -1371,6 +1384,60 @@
   </xsl:choose>
 </xsl:function>
 
+<!-- ahf:javascript-button($name as xs:string) as item()* -->
+<!-- Generate a button for $name. -->
+<xsl:function name="ahf:javascript-button" as="item()*">
+  <xsl:param name="name" as="xs:string" />
+
+  <xsl:text>&nbsp;</xsl:text>
+  <axf:form-field field-type="button"
+	          field-name="{$name}"
+                  axf:field-flags="hidden"
+                  width="1.5em"
+                  background-color="white"
+                  />
+</xsl:function>
+
+<!-- ahf:javascript-openaction($reported-errors as xs:string*) as item()* -->
+<!-- <axf:document-info name="openaction" value="..." /> -->
+<xsl:function name="ahf:javascript-openaction" as="item()*">
+  <xsl:param name="error-codes" as="xs:string*" />
+
+  <axf:document-info name="openaction">
+    <xsl:attribute name="value" xml:space="preserve">#JavaScript=
+var ocgArray = this.getOCGs();
+var f = false;
+<xsl:for-each select="$reported-error-codes">
+f = this.getField('<xsl:value-of select="ahf:l10n(.)" />');
+f.borderStyle = border.i; /* border.s evaluates to 'solid' */
+f.fillColor = color.red;
+f.hidden = false;
+
+f.setAction('MouseUp', 'toggleLayer(\'<xsl:value-of select="ahf:l10n(.)" />\');');
+</xsl:for-each>
+this.dirty = false;
+
+function toggleLayer(layer) {
+    for (var i=0; i &lt; ocgArray.length; i++) {
+	console.println('name = &quot;' + ocgArray[i].name + '&quot;');
+	if (ocgArray[i].name == layer) {
+	    ocgArray[i].state = !ocgArray[i].state;
+	    console.println( layer + ':' + ocgArray[i].state );
+	    var f = this.getField(layer);
+	    if (ocgArray[i].state) {
+	        f.borderStyle = border.i;
+		f.fillColor = color.red;
+	    } else {
+	        f.borderStyle = border.b;
+		f.fillColor = color.ltGray;
+	    }
+	}
+    }
+    this.dirty = false;
+}
+</xsl:attribute>
+</axf:document-info>
+</xsl:function>
 
 <!-- ============================================================= -->
 <!-- ACCUMULATORS                                                  -->
@@ -1416,8 +1483,8 @@
     initial-value="true()">
   <xsl:accumulator-rule match="at:AreaRoot" phase="start">
     <xsl:sequence
-        select="not(@document-info.pagelayout = ('TwoColumnRight',
-                                                 'TwoPageRight'))" />
+        select="@document-info.pagelayout = ('TwoColumnLeft',
+                                             'TwoPageLeft')" />
   </xsl:accumulator-rule>
 </xsl:accumulator>
 
