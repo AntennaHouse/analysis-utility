@@ -150,11 +150,12 @@
 
   <xsl:for-each
       select="(1 to array:size($all-pages-info))
-                [$odd-pages-left and (. = 1 or . mod 2 = 0) or
-                 not($odd-pages-left) and . mod 2 = 1]">
+                [$odd-pages-left and . mod 2 = 1 or
+                 not($odd-pages-left) and (. = 1 or . mod 2 = 0)]">
     <xsl:variable
         name="abs-page-number"
         select="." />
+    <!--<xsl:message select="$abs-page-number" />-->
     <xsl:variable
         name="page-block"
         select="$all-pages-info(.)"
@@ -166,7 +167,7 @@
     <xsl:if
         test="exists($errors-doc/errors/error
                        [@page = $abs-page-number or
-                        (not($odd-pages-left and $abs-page-number = 1) and
+                        (not(not($odd-pages-left) and $abs-page-number = 1) and
                          @page = $abs-page-number + 1)])">
       <xsl:variable
           name="first-page-item-count"
@@ -191,7 +192,7 @@
                        $compact.per-page-block-container.column-count"
               as="xs:double" tunnel="yes" />
         </xsl:call-template>
-        <xsl:if test="not($odd-pages-left and $abs-page-number = 1) and
+        <xsl:if test="not(not($odd-pages-left) and $abs-page-number = 1) and
                       $abs-page-number + 1 &lt;= array:size($all-pages-info)">
           <xsl:call-template name="per-page-image">
             <xsl:with-param
@@ -237,7 +238,7 @@
         </xsl:call-template>
         </xsl:if>
         <xsl:if
-            test="not($odd-pages-left and $abs-page-number = 1) and
+            test="not(not($odd-pages-left) and $abs-page-number = 1) and
                   exists($errors-doc/errors/error[@page = $abs-page-number + 1])">
           <xsl:call-template name="per-page-title">
             <xsl:with-param
