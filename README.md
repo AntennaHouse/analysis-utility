@@ -146,7 +146,7 @@ The thumbnails of pages that contain errors are shown with a red border. The int
 
 When viewing the PDF in a reader, hovering your mouse over a thumbnail brings up a tooltip that shows the page number and a summary of the errors. Clicking on a thumbnail of a page with errors jumps to the report page for that page.
 
-Each type of error is on a separate layer in the PDF. The errors from a type of error can be hidden by disabling its layer. When JavaScript is enabled and your PDF reader supports JavaScript, the PDF shows a button beside each error name in the summary. Click on the button to toggle display of the layer for that error.    
+Each type of error is on a separate layer in the PDF. The errors from a type of error can be hidden by disabling its layer. When JavaScript is enabled and your PDF reader supports JavaScript, the PDF shows a button beside each error name in the summary. Click on the button to toggle display of the layer for that error. 
 
 ![Buttons toggle layer visibility](img/report-button-en.png "Buttons toggle layer visibility")
 
