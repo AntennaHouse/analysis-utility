@@ -300,6 +300,8 @@
 
   <xsl:copy>
     <xsl:apply-templates select="@*" />
+    <!-- Generate @layer-settings if any error code in the log is a
+         known analysis error code. -->
     <xsl:if test="$errors/error[key('error-codes', @code)[1]][1]">
       <xsl:attribute
           name="layer-settings">
