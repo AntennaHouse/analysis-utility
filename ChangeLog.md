@@ -1,3 +1,14 @@
+# AH Formatter Analysis Utility 7.1.0
+
+Corresponds to AH Formatter V7.1 R1.
+
+- Use JavaScript in Acrobat to control layer visibility.
+- Use '-js no' to turn off JavaScript in report PDF on Windows.
+- Corrected handling of documents with odd-numbered pages on the left.
+- Localized 'Unbalanced spread' messages.
+- Errors for lines before and after block.
+- Reporting modification time also for HTML files.
+- Using either AH Formatter V7.1 or V7.0 on Linux.
 
 # AH Formatter Analysis Utility 7.0.5
 
