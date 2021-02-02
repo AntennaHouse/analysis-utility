@@ -7,14 +7,19 @@
 
 Stylesheets and scripts for working with the results from AH Formatter automated analysis.
 
-## Windows
+This utility can produce PDF reports in two formats: a version of the complete formatted document with annotations for every detected error or report that shows every page that contains an error (see "[Report](#en-report)").
+
+There are scripts for running the utility on [Windows](#en-windows) or [Linux](#en-linux) as well as an [Ant build file](#en-ant) for use on either platform.
+
+## <a name="en-windows"></a> Windows
 
 ````
 usage: analyzer -d file [-format format] [-lang lang]
                 [-ahfcmd AHFCmd] [-opt "options"]
                 [-xslt xslt] [-xsltparam "xslt-params" ]
                 [-transformer transformer ]
-                [-pdfver pdfver] [-force yes] [-show no]
+                [-pdfver pdfver] [-force yes] [-js no ]
+                [-show no]
 
        file    : File to format and analyze
        format  : Analysis result format -- annotate or report
@@ -29,6 +34,7 @@ usage: analyzer -d file [-format format] [-lang lang]
                      Used with 'annotate' result format only
        pdfver  : PDF version of reports. Default is 'PDF1.7'
        -force yes  : Force all stages to run
+       -js no      : Do not include JavaScript in PDF report
        -show no    : Do not open the PDF report
 ````
 
@@ -51,9 +57,9 @@ The script uses its built-in `annotate.xsl` stylesheet to annotate the Area Tree
 
 This runs the built-in `compact-report.xsl` XSLT 3.0 stylesheet and requires `java.exe` to be on the PATH.
 
-The stylesheet generates a PDF report. An alternative XSLT stylesheet can be specified with the `-xslt` parameter. Additional options and parameters can be passed to the XSLT processor with the `-xsltparam` parameter. The options and parameters must be in the correct syntax for the XSLT processor that will be used, because the `-xsltparam` value is not modified before being used.
+The stylesheet generates a PDF report. (See "[Report](#en-report)".) An alternative XSLT stylesheet can be specified with the `-xslt` parameter. Additional options and parameters can be passed to the XSLT processor with the `-xsltparam` parameter. The options and parameters must be in the correct syntax for the XSLT processor that will be used, because the `-xsltparam` value is not modified before being used.
 
-## Linux
+## <a name="en-linux"></a> Linux
 
 ````
 usage: analyzer.sh -d file [-format format] [-lang lang]
@@ -80,7 +86,7 @@ usage: analyzer.sh -d file [-format format] [-lang lang]
 
 Requires `getopt` to be on the path.
 
-Expects AH Formatter to be installed at `/usr/AHFormatterV70_64/run.sh`. An alternative AH Formatter can be specified with `-ahfcmd`.
+Expects AH Formatter to be installed at `/usr/AHFormatterV71_64/run.sh` or `/usr/AHFormatterV70_64/run.sh`. An alternative AH Formatter can be specified with `-ahfcmd`.
 
 ### `-format annotate`
 
@@ -92,10 +98,9 @@ The script uses its built-in `annotate.xsl` stylesheet to annotate the Area Tree
 
 This runs the built-in `compact-report.xsl` XSLT 3.0 stylesheet and requires `java` to be on the PATH.
 
-
 The stylesheet generates a PDF report. An alternative XSLT stylesheet can be specified with the `-xslt` parameter. Additional options and parameters can be passed to the XSLT processor with the `-xsltparam` parameter. The options and parameters must be in the correct syntax for the XSLT processor that will be used, because the `-xsltparam` value is not modified before being used.
 
-## Apache Ant
+## <a name="en-ant"></a> Apache Ant
 
 ### Annotated PDF
 ````
@@ -105,7 +110,7 @@ ant -f build.xml ahfcmd-annotated-pdf.single -Dsingle=<file> -Dlang=<lang>
        <lang>  : Language for error messages -- en or ja
 ````
 
-### Report PDF
+### <a name="en-ant-report"></a> Report PDF
 ````
 ant -f build.xml ahfcmd-report-pdf.single -Dsingle=<file> -Dlang=<lang>
 
@@ -117,31 +122,44 @@ ant -f build.xml ahfcmd-report-pdf.single -Dsingle=<file> -Dlang=<lang>
 
 Ant properties can be set in `properties.local.xml` in the current directory or in `system.local.properties` in the **analysis-utility** directory. Do not modify `system.properties` because your changes could be overwritten when **analysis-utility** is updated.
 
-## Report PDF
+## <a name="en-annotate"></a> Annotated PDF
+
+The provided stylesheet generates a copy of the original Area Tree XML file with annotations for detected errors.
+
+![Annotated PDF detail](img/annotate-en.png "Annotated PDF detail")
+
+The area for each error is highlighted in red, and the error has a text annotation that shows in the PDF reader as a comment. Each type of error is on a separate layer in the PDF. The errors from a type of error can be hidden by disabling its layer.
+
+## <a name="en-report"></a> Report PDF
 
 The provided stylesheet generates the XSL-FO for a report that comprises a summary page (or pages) plus a separate page for every page in the source document for which an error is reported.
 
 ### Summary page
 
-The first summary page contains some information about the source document and the AH Formatter version that was used to format the source document followed by thumbnail images of the pages of the formatted document. If there are too many images to fit on one page, the images continue on further pages.
+The first summary page includes some information about the source document followed by thumbnail images of the pages of the formatted document. If there are too many images to fit on one page, the images continue on further pages.
 
 ![Report summary page](img/report-summary-en.png "Report summary page")
 
+The initial information includes the numbers of errors for each error type and the number of pages on which they occur.
+
 The thumbnails of pages that contain errors are shown with a red border. The intensity of the red border increases as the number of errors on the page increases.
 
-When viewing the PDF in a reader, hovering your mouse over a thumbnail brings up a tooltip that shows the page number and a summary of the errors. Clicking on a thumbnail of a page jumps to the report page for that page.
+When viewing the PDF in a reader, hovering your mouse over a thumbnail brings up a tooltip that shows the page number and a summary of the errors. Clicking on a thumbnail of a page with errors jumps to the report page for that page.
+
+Each type of error is on a separate layer in the PDF. The errors from a type of error can be hidden by disabling its layer. When JavaScript is enabled and your PDF reader supports JavaScript, the PDF shows a button beside each error name in the summary. Click on the button to toggle display of the layer for that error.    
+
+![Buttons toggle layer visibility](img/report-button-en.png "Buttons toggle layer visibility")
 
 ### Report pages
 
 A report page contains images of pairs of formatted source pages plus a list of the errors on those pages. The page images are annotated to show the position of the error areas. The annotations cycle through a range of colors to make it easier to see which annotation corresponds to which error message. Consecutive errors with the same error message are grouped into one item in the error list.
 
-
-![Report page](img/report-page-en.png "Report page")
+![Report summary page](img/report-page-en.png "Report page")
 
 When viewing the PDF in a reader, hovering your mouse over a callout number on the page image brings up a tooltip that shows the applicable error message. Clicking on the tooltip jumps to the corresponding error message in the error list. Additionally, clicking on an error number in the error list jumps to the corresponding callout number on the page image.
 
 
-## Localization
+## <a name="en-l10n"></a> Localization
 
 The `-lang` parameter specifies the language of generated text in the PDFs generated by these scripts.
 
@@ -162,7 +180,8 @@ Support for a new language can be added by copying and modifying `ja.xml`.
                 [-ahfcmd AHFCmd] [-opt "オプション"]
                 　[-xslt xslt] [-xsltparam "xslt-パラム"]
                 [-transformer トランスフォーマー]
-                [-pdfver pdfver] [-force yes] [-show no]
+                [-pdfver pdfver] [-force yes] [-js no]
+                [-show no]
 
        ファイル    : 組版して分析するファイル
        形式  : 組版結果の分析 -- annotate または report
@@ -177,6 +196,7 @@ Support for a new language can be added by copying and modifying `ja.xml`.
                      'annotate' 組版結果のみで使用
        pdfver  : PDF 版の報告既定値は 'PDF1.7'
        -force yes  : すべての段階を強制的に実行する
+       -js no      : Do not include JavaScript in PDF report
        -show no    : PDF 報告を開いていません
 ````
 
@@ -228,7 +248,7 @@ Support for a new language can be added by copying and modifying `ja.xml`.
 
 `getopt` が PATH上にある必要があります。
 
-AH Formatter が `/usr/AHFormatterV70_64/run.sh`にインストールされることを期待します。代替 AH Formatter は `-ahfcmd` で指定できます。
+AH Formatter が `/usr/AHFormatterV71_64/run.sh` or `/usr/AHFormatterV70_64/run.sh` にインストールされることを期待します。代替 AH Formatter は `-ahfcmd` で指定できます。
 
 ### `-format annotate`
 

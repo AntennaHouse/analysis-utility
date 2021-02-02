@@ -34,6 +34,7 @@ set ahfcmd=
 set d=
 set force=
 set format=annotate
+set js=yes
 set lang=en
 set opt=
 set pdfver=PDF1.7
@@ -56,7 +57,8 @@ echo usage: analyzer -d file [-format format] [-lang lang]
 echo                 [-ahfcmd AHFCmd] [-opt "options"]
 echo                 [-xslt xslt] [-xsltparam "xslt-params" ]
 echo                 [-transformer transformer ]
-echo                 [-pdfver pdfver] [-force yes] [-show no]
+echo                 [-pdfver pdfver] [-force yes] [-js no]
+echo                 [-show no]
 echo.
 echo        file    : File to format and analyze
 echo        format  : Analysis result format -- annotate or report
@@ -71,6 +73,7 @@ echo        transformer : XSLT 1.0 processor -- msxsl, xsltproc, or saxon6
 echo                      Used with 'annotate' result format only
 echo        pdfver  : PDF version of reports. Default is '%pdfver%'
 echo        -force yes  : Force all stages to run
+echo        -js no      : Do not include JavaScript in PDF report
 echo        -show no    : Do not open the PDF report
 echo.
 goto done
@@ -90,7 +93,7 @@ set __short_param= f
 rem List of names of recognized parameters that require a value.
 rem There must be at least one space (' ') at the beginning and end of
 rem the list and between parameter names.
-set __long_param= ahfcmd d force format lang opt pdfver show transformer xslt xsltparam 
+set __long_param= ahfcmd d force format js lang opt pdfver show transformer xslt xsltparam 
 
 rem List of all recognized parameter names.
 rem There must be at least one space (' ') at the beginning and end of
@@ -233,6 +236,11 @@ set AHFCMD="%AHF70_HOME%\AHFCmd.exe"
 
 rem echo %AHFCMD%
 
+set JAVASCRIPT=true
+if "%js%"=="no" (
+   set JAVASCRIPT=false
+)
+
 rem Check format value before taking time to generate Area Tree XML.
 if not "%format%"=="annotate" (
    if not "%format%"=="compact" (
@@ -328,6 +336,8 @@ if not "%transformer%"=="" (
    echo Unrecognized XSLT transformer: %transformer%
    goto error
 )
+
+echo Generating '%BASENAME%.annotated.AT.xml' from '%BASENAME%.AT.xml'
 
 call :sub_on_path msxsl.exe
 if not "%__SUB_ON_PATH_MATCH%"=="" (
@@ -448,7 +458,7 @@ if "%__SUB_ON_PATH_MATCH%"=="" (
 call :sub_mod_date FILE_DATE "%BASENAME%%EXT%"
 
 echo Generating '%BASENAME%.report.fo' from '%BASENAME%.AT.xml'
-java -jar "%LIB_DIR%\saxon9he.jar" "-s:%PWD:\=/%/%BASENAME%.AT.xml" "-xsl:%REPORTER_XSLT:\=/%" "-o:%BASENAME%.report.fo" "logfile=file:///%PWD%/%BASENAME%.log.xml" lang=%lang% "file=%PWD:\=/%/%BASENAME%%EXT%" file-date="%FILE_DATE%" "pdf-file=%PWD:\=/%/%BASENAME%.pdf" %xsltparam%
+java -jar "%LIB_DIR%\saxon9he.jar" "-s:%PWD:\=/%/%BASENAME%.AT.xml" "-xsl:%REPORTER_XSLT:\=/%" "-o:%BASENAME%.report.fo" "logfile=file:///%PWD%/%BASENAME%.log.xml" javascript=%JAVASCRIPT% lang=%lang% "file=%PWD:\=/%/%BASENAME%%EXT%" file-date="%FILE_DATE%" "pdf-file=%PWD:\=/%/%BASENAME%.pdf" %xsltparam%
 
 if %ERRORLEVEL% NEQ 0 (
    echo.
