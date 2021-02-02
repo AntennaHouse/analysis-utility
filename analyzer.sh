@@ -103,11 +103,24 @@ fi
 
 
 if [ "x$AHFCMD" == "x" ] ; then
-    if [ "x$AHF70_64_HOME" == "x" ] ; then
-	AHF70_64_HOME=/usr/AHFormatterV70_64
+    if [ "x$AHF71_64_HOME" == "x" ] ; then
+	AHF71_64_HOME=/usr/AHFormatterV71_64
     fi
 
-    RUN_SH=${AHF70_64_HOME}/run.sh
+    RUN_SH=${AHF71_64_HOME}/run.sh
+
+    if [ ! -e "$RUN_SH" ] ; then
+	if [ "x$AHF70_64_HOME" == "x" ] ; then
+	    AHF70_64_HOME=/usr/AHFormatterV70_64
+	fi
+
+	RUN_SH=${AHF70_64_HOME}/run.sh
+    fi
+
+    if [ ! -e "$RUN_SH" ] ; then
+	echo "'run.sh' file does not exist: ${RUN_SH}" >&2 ;
+	echo "AH Formatter V7.1 or V7.0 is required" ; exit 1
+    fi
 else
     if [ ! -e "$AHFCMD" ] ; then
 	echo "Formatter file does not exist: ${AHFCMD}" >&2 ; exit 1
@@ -138,19 +151,21 @@ fi
 BASENAME_FO=`basename $FILE .fo`
 BASENAME=`basename $BASENAME_FO .html`
 
+echo "Analyzing '${FILE}' and generating '${BASENAME}.AT.XML'"
+
 # Need '-stdout' because 'run.sh' always echoes AHFCmd command-line to
 # STDERR.
-"${RUN_SH}" -analyze ${OPT} -p @AreaTree -xmlerr -d $FILE -o ${BASENAME}.AT.xml -stdout > ${BASENAME}.log.xml 2>/dev/null
+"${RUN_SH}" -analyze ${OPT} -p @AreaTree -xmlerr -d "$FILE" -o "${BASENAME}.AT.xml" -stdout > "${BASENAME}.log.xml" 2>/dev/null
 
-if [ $? != 0 ] ; then
+if [ "x$?" != "x0" ] ; then
     echo "An error occurred when analyzing '${FILE}'. Check log file '${BASENAME}.log.xml'." >&2
     exit 1
 fi
 
 if [ "x$FORMAT" == "xannotate" ] ; then
-    xsltproc --stringparam logfile ${PWD}/${BASENAME}.log.xml --stringparam lang ${LANG} ${XSLT_OPT} -o ${BASENAME}.annotated.AT.xml ${REPORTER_XSLT} ${PWD}/${BASENAME}.AT.xml
+    xsltproc --stringparam logfile "${PWD}/${BASENAME}.log.xml" --stringparam lang ${LANG} ${XSLT_OPT} -o "${BASENAME}.annotated.AT.xml" ${REPORTER_XSLT} "${PWD}/${BASENAME}.AT.xml"
 
-    if [ $? != 0 ] ; then
+    if [ "x$?" != "x0" ] ; then
 	echo "An error occurred when creating the annotated Area Tree XML file." >&2
 	exit 1
     fi
@@ -162,7 +177,7 @@ if [ "x$FORMAT" == "xannotate" ] ; then
 
     "${RUN_SH}" -x 4 -d ${BASENAME}.annotated.AT.xml -o ${BASENAME}.annotated.pdf 2> ${BASENAME}.annotated.log.txt
 
-    if [ $? != 0 ] ; then
+    if [ "x$?" != "x0" ] ; then
 	echo "An error occurred when generating '${BASENAME}.annotated.pdf'. Check log file '${BASENAME}.annotated.log.txt'." >&2
 	exit 1
     fi
@@ -170,11 +185,15 @@ if [ "x$FORMAT" == "xannotate" ] ; then
     echo Analysis completed.
     echo Annotated PDF: ${BASENAME}.annotated.pdf
 else
+    # 'report' (or 'compact') output PDF format.
+
+    echo "Formatting '${FILE}' as '${BASENAME}.pdf'"
     "${RUN_SH}" -x 4 -d ${FILE} -o ${BASENAME}.pdf -pdfver ${PDFVER} 2> ${BASENAME}.pdf.log
 
+    echo "Generating '${BASENAME}.report.fo' from '${BASENAME}.AT.xml'"
     java -jar "${LIB_DIR}/saxon9he.jar" "-s:${PWD}/${BASENAME}.AT.xml" "-xsl:${REPORTER_XSLT}" "-o:${BASENAME}.report.fo" "logfile=file:///${PWD}/${BASENAME}.log.xml" lang=${LANG} "file=${PWD}/${BASENAME}.fo" file-date="${FO_DATE}" "pdf-file=${PWD}/${BASENAME}.pdf" ${XSLTPARAM}
 
-    if [ $? != 0 ] ; then
+    if [ "x$?" != "x0" ] ; then
 	echo "An error occurred when creating the report XSL-FO file." >&2
 	exit 1
     fi
@@ -184,9 +203,10 @@ else
 	exit 1
     fi
 
-    "${RUN_SH}" -x 4 -d ${BASENAME}.report.fo -o ${BASENAME}.report.pdf -pdfver ${PDFVER} 2> ${BASENAME}.report.pdf.log
+    echo "Formatting '${BASENAME}.report.fo' as '${BASENAME}.report.pdf'"
+    "${RUN_SH}" -x 4 -d "${BASENAME}.report.fo" -o "${BASENAME}.report.pdf" -pdfver ${PDFVER} 2> "${BASENAME}.report.pdf.log"
 
-    if [ $? != 0 ] ; then
+    if [ "x$?" != "x0" ] ; then
 	echo "An error occurred when generating '${BASENAME}.report.pdf'. Check log file '${BASENAME}.report.pdf.log'." >&2
 	exit 1
     fi
